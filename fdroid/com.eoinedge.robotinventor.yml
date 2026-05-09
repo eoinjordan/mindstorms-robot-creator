@@ -1,0 +1,65 @@
+# F-Droid metadata for com.eoinedge.robotinventor
+#
+# SUBMISSION STEPS:
+# 1. Fork https://gitlab.com/fdroid/fdroiddata
+# 2. Copy this file to metadata/com.eoinedge.robotinventor.yml
+# 3. Open a merge request titled "New app: Mindstorms Robot Creator"
+# 4. F-Droid will build the APK from source and review within a few weeks
+#
+# Docs: https://f-droid.org/docs/Build_Metadata_Reference/
+
+Categories:
+  - Science & Education
+
+License: MIT
+
+AuthorName: Eoin Jordan
+AuthorWebSite: https://github.com/eoinjordan
+
+SourceCode: https://github.com/eoinjordan/mindstorms-robot-creator
+IssueTracker: https://github.com/eoinjordan/mindstorms-robot-creator/issues
+Changelog: https://github.com/eoinjordan/mindstorms-robot-creator/releases
+
+AutoName: Mindstorms Robot Creator
+
+Summary: Build and control LEGO MINDSTORMS robots with AI assistance
+
+Description: |-
+  Mindstorms Robot Creator is an open-source companion app for LEGO MINDSTORMS
+  Robot Inventor (51515) and related hubs.
+
+  Connect to your robot hub via Bluetooth Low Energy (BLE) or USB, then use the
+  built-in AI code generator to write MicroPython programs. A live builder
+  session panel lets you observe the robot's state, send REPL commands, and
+  iterate quickly.
+
+  Features:
+
+  * BLE and USB connection to MINDSTORMS hubs
+  * AI-powered code generator (MicroPython)
+  * Builder session with live hub status
+  * Voice keyword spotting for hands-free control
+  * Works alongside the browser PWA and desktop app
+  * Zero tracking, no accounts, no cloud required
+
+  The app is part of the Mindstorms Robot Creator project which also includes an
+  MCP server for integration with AI assistants (Claude, Copilot, Cursor) and a
+  desktop Electron app.
+
+  All source code is MIT-licensed and available on GitHub.
+
+RepoType: git
+Repo: https://github.com/eoinjordan/mindstorms-robot-creator
+
+Builds:
+  - versionName: '0.1.0'
+    versionCode: 1
+    commit: v0.1.0
+    subdir: android/robot-inventor-app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '0.1.0'
+CurrentVersionCode: 1

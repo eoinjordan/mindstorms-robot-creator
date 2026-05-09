@@ -1,0 +1,6 @@
+0.1.0
+- Initial release
+- BLE and USB connection to MINDSTORMS hubs
+- AI-powered MicroPython code generator
+- Builder session with live hub status
+- Voice keyword spotting

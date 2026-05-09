@@ -1,0 +1,28 @@
+Mindstorms Robot Creator is an open-source companion app for LEGO MINDSTORMS Robot Inventor (51515) and related hubs.
+
+Connect to your robot hub via Bluetooth Low Energy (BLE) or USB, then use the built-in AI code generator to write MicroPython programs. A live builder session panel lets you observe the robot's state, send REPL commands, and iterate quickly.
+
+FEATURES
+
+• BLE and USB connection to MINDSTORMS hubs (EV3, 51515, SPIKE)
+• AI-powered MicroPython code generator
+• Builder session with live hub status and observation log
+• Voice keyword spotting for hands-free robot control
+• Works alongside the browser PWA and desktop app
+• Zero tracking, no accounts, no cloud required — works fully offline
+
+OPEN SOURCE
+
+All source code is MIT-licensed and available on GitHub at:
+https://github.com/eoinjordan/mindstorms-robot-creator
+
+The project also includes:
+• A browser-based PWA (no install needed)
+• An MCP server for AI assistant integration (Claude, Copilot, Cursor)
+• A Windows/macOS/Linux desktop Electron app
+
+COMPATIBILITY
+
+Requires Android 8.0 (API 26) or later. Bluetooth 4.0+ required for BLE connection.
+Compatible with LEGO MINDSTORMS Robot Inventor (51515), EV3, and SPIKE Prime hubs
+running MicroPython or Pybricks firmware.

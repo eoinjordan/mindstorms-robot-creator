@@ -185,13 +185,13 @@ jobs:
             dist-electron/*.deb
 
   # ── 6. Android APK ────────────────────────────────────────────────────────────
-  # PREREQUISITE: The Android project must be committed to android/MindstormsAICreator/
-  # in this repo. Run scripts/sync-android-to-repo.ps1 locally then commit + push.
+  # Builds an unsigned release APK from android/robot-inventor-app.
+  # The APK is attached to the GitHub Release and is also the artifact
+  # submitted to F-Droid (which re-builds from source itself).
   build-android:
     name: Build Android APK
     needs: [test, screenshot]
     runs-on: ubuntu-latest
-    # Skip if the Android project is not in the repo
     if: |
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
       (github.event_name == 'workflow_dispatch' && inputs.build_android == true)
@@ -199,57 +199,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check Android project exists
-        id: android-check
-        run: |
-          if [ -f "android/MindstormsAICreator/gradlew" ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::android/MindstormsAICreator not found in repo — skipping APK build."
-            echo "Run scripts/sync-android-to-repo.ps1 and commit the result."
-          fi
-
       - uses: actions/setup-java@v4
-        if: steps.android-check.outputs.present == 'true'
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android SDK
-        if: steps.android-check.outputs.present == 'true'
         uses: android-actions/setup-android@v3
 
       - name: Write local.properties
-        if: steps.android-check.outputs.present == 'true'
-        working-directory: android/MindstormsAICreator
+        working-directory: android/robot-inventor-app
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: Make gradlew executable
-        if: steps.android-check.outputs.present == 'true'
-        working-directory: android/MindstormsAICreator
+        working-directory: android/robot-inventor-app
         run: chmod +x gradlew
 
       - name: Build release APK (unsigned)
-        if: steps.android-check.outputs.present == 'true'
-        working-directory: android/MindstormsAICreator
+        working-directory: android/robot-inventor-app
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK artifact
-        if: steps.android-check.outputs.present == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/MindstormsAICreator/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+          path: android/robot-inventor-app/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
 
       - name: Attach APK to GitHub Release
-        if: |
-          steps.android-check.outputs.present == 'true' &&
-          startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: android/MindstormsAICreator/app/build/outputs/apk/release/*.apk
+          files: android/robot-inventor-app/app/build/outputs/apk/release/*.apk
 
   # ── 7. Publish to npm ─────────────────────────────────────────────────────────
   # Publishes the MCP server package to npmjs.org on every version tag.
