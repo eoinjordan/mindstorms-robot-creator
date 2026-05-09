@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eoinedge.local/schemas/robot-profile.schema.json",
+  "title": "Robot Profile",
+  "type": "object",
+  "required": ["id", "name", "family", "controller", "ports"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "family": {
+      "type": "string",
+      "enum": ["m5stack-basex", "ev3", "spike-prime", "robot-inventor", "nxt", "rcx"]
+    },
+    "robotKind": {
+      "type": "string",
+      "description": "Training label or known morphology class for seeded examples."
+    },
+    "controller": {
+      "type": "object",
+      "required": ["model", "firmware", "connection"],
+      "properties": {
+        "model": { "type": "string" },
+        "firmware": { "type": "string" },
+        "connection": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "ports": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["kind", "part", "role"],
+        "properties": {
+          "kind": { "type": "string" },
+          "part": { "type": "string" },
+          "role": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sensors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "source"],
+        "properties": {
+          "kind": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "simulator": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "programTargets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "license": { "type": "string" }
+  },
+  "additionalProperties": true
+}

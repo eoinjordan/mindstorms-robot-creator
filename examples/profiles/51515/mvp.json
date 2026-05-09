@@ -1,0 +1,37 @@
+{
+  "id": "51515-mvp",
+  "name": "M.V.P.",
+  "family": "robot-inventor",
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "robotKind": "modular_vehicle_platform",
+  "source": {
+    "manual": "PDF_manuals/51515/51515_MVP.pdf",
+    "portMap": "pybricks-basic-buggy",
+    "url": "https://pybricks.com/projects/sets/mindstorms-robot-inventor/main-models/mvp/"
+  },
+  "controller": {
+    "model": "Robot Inventor Hub 51515",
+    "firmware": "pybricks-or-lego-spike",
+    "connection": ["ble", "usb"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "angular-motor", "role": "steering" },
+    "B": { "kind": "motor", "part": "angular-motor", "role": "drive", "positiveDirection": "counterclockwise" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "hub" }
+  ],
+  "variants": [
+    "buggy",
+    "crane",
+    "shooter_turret",
+    "brick_eating_truck"
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B"],
+    "features": ["steering_servo_response", "single_drive_motor", "modular_attachment_possible"]
+  },
+  "programTargets": ["pybricks-python", "spike-stock"],
+  "license": "CC-BY-4.0"
+}

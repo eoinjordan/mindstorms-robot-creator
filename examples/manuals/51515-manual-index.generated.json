@@ -1,0 +1,42 @@
+{
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "manualRoot": "PDF_manuals/51515",
+  "manuals": [
+    {
+      "name": "51515_Blast",
+      "file": "PDF_manuals/51515/51515_Blast.pdf",
+      "pages": 333,
+      "textExtraction": "image-only"
+    },
+    {
+      "name": "51515_Charlie",
+      "file": "PDF_manuals/51515/51515_Charlie.pdf",
+      "pages": 315,
+      "textExtraction": "image-only"
+    },
+    {
+      "name": "51515_Gelo",
+      "file": "PDF_manuals/51515/51515_Gelo.pdf",
+      "pages": 226,
+      "textExtraction": "image-only"
+    },
+    {
+      "name": "51515_MVP",
+      "file": "PDF_manuals/51515/51515_MVP.pdf",
+      "pages": 422,
+      "textExtraction": "image-only"
+    },
+    {
+      "name": "51515_Tricky",
+      "file": "PDF_manuals/51515/51515_Tricky.pdf",
+      "pages": 356,
+      "textExtraction": "image-only"
+    },
+    {
+      "name": "6447738",
+      "file": "PDF_manuals/51515/6447738.pdf",
+      "pages": 40,
+      "textExtraction": "partial-text"
+    }
+  ]
+}

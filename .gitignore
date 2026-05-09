@@ -1,0 +1,35 @@
+# build outputs
+.tools/
+out/
+dist-electron/
+node_modules/
+
+# android build dirs
+android/robot-inventor-app/.gradle/
+android/robot-inventor-app/build/
+android/robot-inventor-app/app/build/
+android/MindstormsAICreator/.gradle/
+android/MindstormsAICreator/build/
+android/MindstormsAICreator/app/build/
+android/MindstormsAICreator/.idea/
+android/MindstormsAICreator/.kotlin/
+android/MindstormsAICreator/local.properties
+local.properties
+
+# large binary assets — keep locally, not in git
+PDF_manuals/
+lego_installers/
+*.msi
+*.exe
+*.dmg
+*.AppImage
+*.deb
+
+# screenshots / recordings — CI snapshots (PNGs) are committed; videos and old folders are not
+screencaps/ci/
+screencaps/demos/*.webm
+screencaps/20*
+
+# misc
+nul
+*.pdf

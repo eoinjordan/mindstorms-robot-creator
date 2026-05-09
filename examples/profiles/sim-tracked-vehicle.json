@@ -1,0 +1,24 @@
+{
+  "id": "sim-tracked-vehicle",
+  "name": "Simulated Tracked Vehicle",
+  "family": "m5stack-basex",
+  "robotKind": "tracked_vehicle",
+  "controller": {
+    "model": "M5Stack Core2 + BaseX",
+    "firmware": "arduino",
+    "connection": ["usb-serial", "ble", "wifi"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "ev3-large", "role": "left_track" },
+    "B": { "kind": "motor", "part": "ev3-large", "role": "right_track" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "controller" }
+  ],
+  "simulator": {
+    "speedScale": 3.0,
+    "inertia": 0.18
+  },
+  "programTargets": ["arduino-basex"],
+  "license": "CC-BY-4.0"
+}

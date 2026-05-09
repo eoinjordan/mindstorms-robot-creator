@@ -1,0 +1,35 @@
+{
+  "id": "51515-charlie",
+  "name": "Charlie",
+  "family": "robot-inventor",
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "robotKind": "humanoid_drive_companion",
+  "source": {
+    "manual": "PDF_manuals/51515/51515_Charlie.pdf",
+    "portMap": "manual-image-inferred",
+    "manualPagesInspected": [31, 60, 70, 74],
+    "notes": "The PDF is image-only. The profile uses inspected hub-wiring pages and should be confirmed against the LEGO app or physical build."
+  },
+  "controller": {
+    "model": "Robot Inventor Hub 51515",
+    "firmware": "lego-spike-or-pybricks",
+    "connection": ["ble", "usb"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "angular-motor", "role": "right_drive_or_body_motion", "confidence": "inferred" },
+    "B": { "kind": "motor", "part": "angular-motor", "role": "left_drive_or_body_motion", "confidence": "inferred" },
+    "E": { "kind": "motor", "part": "angular-motor", "role": "left_arm_or_head_motion", "confidence": "inferred" },
+    "F": { "kind": "motor", "part": "angular-motor", "role": "right_arm_or_head_motion", "confidence": "inferred" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "hub" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "E", "F"],
+    "features": ["drive_pair", "body_motion_pair", "no_external_sensor_confirmed"]
+  },
+  "programTargets": ["spike-stock", "pybricks-python"],
+  "needsConfirmation": true,
+  "license": "CC-BY-4.0"
+}

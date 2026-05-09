@@ -1,0 +1,39 @@
+{
+  "name": "Mindstorms Robot Creator",
+  "short_name": "Robot Creator",
+  "description": "Build, code, and control LEGO MINDSTORMS robots with AI. Works offline. Browser app, desktop and Android.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "theme_color": "#172026",
+  "background_color": "#f4f7f7",
+  "lang": "en",
+  "categories": ["education", "kids", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Code Generator",
+      "url": "./index.html#code",
+      "description": "Generate Python code for your robot"
+    },
+    {
+      "name": "Connect Hub",
+      "url": "./index.html#connect",
+      "description": "Connect your LEGO hub via Bluetooth or USB"
+    }
+  ]
+}

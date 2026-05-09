@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eoinedge.local/schemas/builder-session.schema.json",
+  "title": "Human In The Loop Builder Session",
+  "type": "object",
+  "required": ["schemaVersion", "id", "profileId", "goal", "state", "createdAt", "updatedAt", "steps"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string" },
+    "profileId": { "type": "string", "minLength": 1 },
+    "profileName": { "type": "string" },
+    "family": { "type": "string" },
+    "audience": {
+      "type": "string",
+      "description": "Expected session audience, for example kid, family, classroom, maker, or teacher."
+    },
+    "mode": {
+      "type": "string",
+      "description": "Primary execution surface, for example robot-inventor-51515, ev3-classroom, local-mcp, pybricks, or simulated."
+    },
+    "goal": { "type": "string", "minLength": 1 },
+    "state": {
+      "type": "string",
+      "enum": ["planning", "ready_for_user", "waiting_for_observation", "debugging", "complete", "blocked"]
+    },
+    "safetyLevel": {
+      "type": "string",
+      "enum": ["kid-safe", "supervised", "maker", "unknown"]
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "author", "createdAt", "text"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": {
+            "type": "string",
+            "enum": ["agent_instruction", "user_action", "observation", "run_result", "fix", "question", "answer", "note"]
+          },
+          "author": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "text": { "type": "string", "minLength": 1 },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "nextActions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

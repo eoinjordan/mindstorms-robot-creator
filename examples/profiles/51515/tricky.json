@@ -1,0 +1,42 @@
+{
+  "id": "51515-tricky",
+  "name": "Tricky",
+  "family": "robot-inventor",
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "robotKind": "sports_drive_kicker",
+  "source": {
+    "manual": "PDF_manuals/51515/51515_Tricky.pdf",
+    "portMap": "pybricks",
+    "url": "https://pybricks.com/projects/sets/mindstorms-robot-inventor/main-models/tricky/"
+  },
+  "controller": {
+    "model": "Robot Inventor Hub 51515",
+    "firmware": "pybricks-or-lego-spike",
+    "connection": ["ble", "usb"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "angular-motor", "role": "drive_right_or_left_variant" },
+    "B": { "kind": "motor", "part": "angular-motor", "role": "drive_left_or_right_variant", "positiveDirection": "counterclockwise" },
+    "C": { "kind": "motor", "part": "angular-motor", "role": "kicker_or_attachment" },
+    "D": { "kind": "sensor", "part": "distance-sensor", "role": "trigger_detection" },
+    "E": { "kind": "sensor", "part": "color-sensor", "role": "ball_or_line_detection" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "hub" },
+    { "kind": "distance", "source": "Port.D" },
+    { "kind": "color", "source": "Port.E" }
+  ],
+  "variants": [
+    "intro_dance",
+    "soccer_penalty_kick",
+    "basketball",
+    "bowling"
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C"],
+    "features": ["drive_pair", "kicker_motor", "distance_sensor", "color_sensor"]
+  },
+  "programTargets": ["pybricks-python", "spike-stock"],
+  "license": "CC-BY-4.0"
+}

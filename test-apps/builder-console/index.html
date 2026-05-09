@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mindstorms Builder Console</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Mindstorms Builder Console</h1>
+          <p id="serverStatus">Checking local server...</p>
+        </div>
+        <div class="server-controls">
+          <label for="serverUrl">Server</label>
+          <input id="serverUrl" value="http://127.0.0.1:3095" spellcheck="false">
+          <button id="refreshBtn" type="button">Refresh</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="fleet-panel" aria-label="Robot fleet">
+          <div class="panel-header">
+            <h2>Fleet</h2>
+            <button id="scanBtn" type="button">Scan</button>
+          </div>
+          <div id="fleetList" class="fleet-list"></div>
+        </aside>
+
+        <section class="main-panel" aria-label="Builder workflow">
+          <section class="builder-band">
+            <div class="section-heading">
+              <div>
+                <h2>Builder Session</h2>
+                <p>One safe test, one observation, one next change.</p>
+              </div>
+              <span id="selectedRobot" class="status-pill">No robot selected</span>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                Goal
+                <input id="goalInput" value="make Blast wave safely">
+              </label>
+              <label>
+                Audience
+                <select id="audienceInput">
+                  <option value="kid">kid</option>
+                  <option value="family">family</option>
+                  <option value="classroom">classroom</option>
+                  <option value="maker">maker</option>
+                </select>
+              </label>
+              <label>
+                Session ID
+                <input id="sessionIdInput" placeholder="auto-generated">
+              </label>
+            </div>
+
+            <div class="action-row">
+              <button id="startBuilderBtn" type="button">Start Session</button>
+              <button id="handoffBtn" type="button">Handoff Steps</button>
+              <button id="summaryBtn" type="button">Summarize</button>
+            </div>
+
+            <div class="observation-row">
+              <label for="observationInput">Observation</label>
+              <textarea id="observationInput" rows="3" placeholder="The right motor did not move, but the hub light stayed white."></textarea>
+              <button id="observeBtn" type="button">Record Observation</button>
+            </div>
+
+            <div id="builderResult" class="result-grid"></div>
+          </section>
+
+          <section class="tool-band">
+            <div class="section-heading">
+              <div>
+                <h2>Probe Tools</h2>
+                <p>Simulated first; real hardware adapters must keep explicit stop controls.</p>
+              </div>
+            </div>
+
+            <div class="form-grid compact">
+              <label>
+                Duty
+                <input id="dutyInput" type="number" min="5" max="40" value="20">
+              </label>
+              <label>
+                Sample rate
+                <input id="sampleRateInput" type="number" min="10" max="100" value="50">
+              </label>
+            </div>
+
+            <div class="action-row">
+              <button id="planBtn" type="button">Create Plan</button>
+              <button id="probeBtn" type="button">Run Sim Probe</button>
+              <button id="classifyBtn" type="button">Classify Last Probe</button>
+            </div>
+          </section>
+        </section>
+
+        <aside class="log-panel" aria-label="Action output">
+          <div class="panel-header">
+            <h2>Output</h2>
+            <button id="clearLogBtn" type="button">Clear</button>
+          </div>
+          <pre id="logOutput">{}</pre>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

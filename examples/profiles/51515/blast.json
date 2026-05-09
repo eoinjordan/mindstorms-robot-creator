@@ -1,0 +1,37 @@
+{
+  "id": "51515-blast",
+  "name": "Blast",
+  "family": "robot-inventor",
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "robotKind": "humanoid_drive_launcher",
+  "source": {
+    "manual": "PDF_manuals/51515/51515_Blast.pdf",
+    "portMap": "pybricks",
+    "url": "https://pybricks.com/projects/sets/mindstorms-robot-inventor/main-models/blast/"
+  },
+  "controller": {
+    "model": "Robot Inventor Hub 51515",
+    "firmware": "pybricks-or-lego-spike",
+    "connection": ["ble", "usb"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "angular-motor", "role": "right_drive" },
+    "B": { "kind": "motor", "part": "angular-motor", "role": "action_launcher_or_hammer" },
+    "C": { "kind": "motor", "part": "angular-motor", "role": "left_drive", "positiveDirection": "counterclockwise" },
+    "D": { "kind": "motor", "part": "angular-motor", "role": "arm_lift" },
+    "E": { "kind": "sensor", "part": "color-sensor", "role": "color_detection" },
+    "F": { "kind": "sensor", "part": "distance-sensor", "role": "obstacle_detection" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "hub" },
+    { "kind": "color", "source": "Port.E" },
+    { "kind": "distance", "source": "Port.F" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C", "D"],
+    "features": ["drive_pair", "arm_motor", "action_motor", "distance_sensor", "color_sensor"]
+  },
+  "programTargets": ["pybricks-python", "spike-stock"],
+  "license": "CC-BY-4.0"
+}

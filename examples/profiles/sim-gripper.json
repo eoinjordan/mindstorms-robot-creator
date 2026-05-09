@@ -1,0 +1,24 @@
+{
+  "id": "sim-gripper",
+  "name": "Simulated Motorized Gripper",
+  "family": "m5stack-basex",
+  "robotKind": "gripper",
+  "controller": {
+    "model": "M5Stack Core2 + BaseX",
+    "firmware": "arduino",
+    "connection": ["usb-serial", "ble", "wifi"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "ev3-medium", "role": "jaw" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "controller" }
+  ],
+  "simulator": {
+    "speedScale": 4.2,
+    "inertia": 0.34,
+    "stallAfterDegrees": 62
+  },
+  "programTargets": ["arduino-basex"],
+  "license": "CC-BY-4.0"
+}

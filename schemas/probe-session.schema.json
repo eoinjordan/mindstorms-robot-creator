@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eoinedge.local/schemas/probe-session.schema.json",
+  "title": "Probe Session",
+  "type": "object",
+  "required": ["sessionId", "profileId", "sampleRateHz", "commands", "telemetry"],
+  "properties": {
+    "sessionId": { "type": "string", "minLength": 1 },
+    "profileId": { "type": "string" },
+    "label": { "type": "string" },
+    "sampleRateHz": { "type": "number", "exclusiveMinimum": 0 },
+    "device": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tMs", "port", "mode", "value"],
+        "properties": {
+          "tMs": { "type": "number", "minimum": 0 },
+          "port": { "type": "string" },
+          "mode": { "type": "string" },
+          "value": { "type": "number" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "telemetry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tMs", "ports", "imu"],
+        "properties": {
+          "tMs": { "type": "number", "minimum": 0 },
+          "ports": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "position": { "type": "number" },
+                "speed": { "type": "number" },
+                "duty": { "type": "number" },
+                "stalled": { "type": "boolean" }
+              },
+              "additionalProperties": true
+            }
+          },
+          "imu": {
+            "type": "object",
+            "properties": {
+              "ax": { "type": "number" },
+              "ay": { "type": "number" },
+              "az": { "type": "number" },
+              "gx": { "type": "number" },
+              "gy": { "type": "number" },
+              "gz": { "type": "number" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    }
+  },
+  "additionalProperties": true
+}

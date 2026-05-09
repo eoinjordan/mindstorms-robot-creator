@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "example-51515-blast-first-run",
+  "title": "Blast first safe movement test",
+  "profileId": "51515-blast",
+  "profileName": "Blast",
+  "family": "robot-inventor",
+  "audience": "family",
+  "mode": "robot-inventor-51515",
+  "goal": "Confirm Blast can run a short low-power arm or drive test before generating a larger program.",
+  "state": "ready_for_user",
+  "safetyLevel": "kid-safe",
+  "createdAt": "2026-05-09T00:00:00.000Z",
+  "updatedAt": "2026-05-09T00:00:00.000Z",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "agent_instruction",
+      "author": "agent",
+      "createdAt": "2026-05-09T00:00:00.000Z",
+      "text": "Open the LEGO MINDSTORMS Robot Inventor app, connect the hub, run one short low-power test, then report exactly what moved.",
+      "data": {
+        "safety": [
+          "Put the robot on the floor or a stand with space around moving parts.",
+          "Keep the stop control visible.",
+          "Do not increase power while debugging ports."
+        ]
+      }
+    }
+  ],
+  "nextActions": [
+    "Run one short test in the LEGO app.",
+    "Append an observation with movement, lights, sounds, and any app error."
+  ]
+}

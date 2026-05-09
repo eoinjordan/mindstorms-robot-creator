@@ -1,0 +1,37 @@
+{
+  "id": "51515-gelo",
+  "name": "Gelo",
+  "family": "robot-inventor",
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "robotKind": "quadruped_walker",
+  "source": {
+    "manual": "PDF_manuals/51515/51515_Gelo.pdf",
+    "portMap": "pybricks",
+    "url": "https://pybricks.com/projects/sets/mindstorms-robot-inventor/main-models/gelo/basic/"
+  },
+  "controller": {
+    "model": "Robot Inventor Hub 51515",
+    "firmware": "pybricks-or-lego-spike",
+    "connection": ["ble", "usb"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "angular-motor", "role": "rear_right_leg", "positiveDirection": "counterclockwise" },
+    "B": { "kind": "motor", "part": "angular-motor", "role": "rear_left_leg" },
+    "C": { "kind": "motor", "part": "angular-motor", "role": "front_right_leg", "positiveDirection": "counterclockwise" },
+    "D": { "kind": "motor", "part": "angular-motor", "role": "front_left_leg" },
+    "E": { "kind": "sensor", "part": "distance-sensor", "role": "obstacle_detection" },
+    "F": { "kind": "sensor", "part": "color-sensor", "role": "trick_selection" }
+  },
+  "sensors": [
+    { "kind": "imu", "source": "hub" },
+    { "kind": "distance", "source": "Port.E" },
+    { "kind": "color", "source": "Port.F" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C", "D"],
+    "features": ["four_leg_motors", "gait_phase_coupling", "distance_sensor", "color_sensor"]
+  },
+  "programTargets": ["pybricks-python", "spike-stock"],
+  "license": "CC-BY-4.0"
+}

@@ -1,0 +1,53 @@
+{
+  "kit": "LEGO MINDSTORMS Robot Inventor 51515",
+  "manualRoot": "PDF_manuals/51515",
+  "manuals": [
+    {
+      "robotId": "51515-blast",
+      "name": "Blast",
+      "file": "PDF_manuals/51515/51515_Blast.pdf",
+      "pages": 333,
+      "textExtraction": "image-only",
+      "profile": "examples/profiles/51515/blast.json"
+    },
+    {
+      "robotId": "51515-charlie",
+      "name": "Charlie",
+      "file": "PDF_manuals/51515/51515_Charlie.pdf",
+      "pages": 315,
+      "textExtraction": "image-only",
+      "profile": "examples/profiles/51515/charlie.json",
+      "manualPagesInspected": [31, 60, 70, 74]
+    },
+    {
+      "robotId": "51515-gelo",
+      "name": "Gelo",
+      "file": "PDF_manuals/51515/51515_Gelo.pdf",
+      "pages": 226,
+      "textExtraction": "image-only",
+      "profile": "examples/profiles/51515/gelo.json"
+    },
+    {
+      "robotId": "51515-mvp",
+      "name": "M.V.P.",
+      "file": "PDF_manuals/51515/51515_MVP.pdf",
+      "pages": 422,
+      "textExtraction": "image-only",
+      "profile": "examples/profiles/51515/mvp.json"
+    },
+    {
+      "robotId": "51515-tricky",
+      "name": "Tricky",
+      "file": "PDF_manuals/51515/51515_Tricky.pdf",
+      "pages": 356,
+      "textExtraction": "image-only",
+      "profile": "examples/profiles/51515/tricky.json"
+    },
+    {
+      "name": "51515 additional build booklet",
+      "file": "PDF_manuals/51515/6447738.pdf",
+      "pages": 40,
+      "textExtraction": "partial-text"
+    }
+  ]
+}

@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mindstorms Robot Creator</title>
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/dracula.min.css">
+  <!-- PWA / Icons -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon-192.svg">
+  <meta name="theme-color" content="#0d1a20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Build, code, and control LEGO MINDSTORMS robots with AI. Works offline.">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<div class="app">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="tl-hub" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0c7a71"/>
+              <stop offset="100%" stop-color="#0a6860"/>
+            </linearGradient>
+            <linearGradient id="tl-glow" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#5eead4"/>
+              <stop offset="100%" stop-color="#2dd4bf"/>
+            </linearGradient>
+          </defs>
+          <rect width="192" height="192" rx="36" fill="#0d1a20"/>
+          <rect x="32" y="52" width="128" height="88" rx="18" fill="url(#tl-hub)"/>
+          <rect x="44" y="64" width="104" height="64" rx="12" fill="#0a5c55" opacity="0.6"/>
+          <circle cx="96" cy="96" r="24" fill="#0d1a20" opacity="0.7"/>
+          <circle cx="96" cy="96" r="18" fill="url(#tl-glow)" opacity="0.9"/>
+          <circle cx="96" cy="96" r="11" fill="#0d1a20"/>
+          <circle cx="96" cy="96" r="6"  fill="url(#tl-glow)"/>
+          <rect x="50" y="70" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
+          <rect x="50" y="108" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
+          <rect x="128" y="70" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
+          <rect x="128" y="108" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
+          <path d="M 72 30 A 34 34 0 0 1 120 30" stroke="#5eead4" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="brand-name">Mindstorms Robot Creator</span>
+      <span id="serverPill" class="pill pill-off">&#9679; server offline</span>
+      <span id="hubPill" class="pill pill-off">&#9679; hub disconnected</span>
+    </div>
+    <div class="topbar-right">
+      <label class="inline-label">Server
+        <input id="serverUrl" type="url" value="http://127.0.0.1:3095" spellcheck="false">
+      </label>
+      <button id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Fleet sidebar -->
+    <aside class="fleet-sidebar">
+      <div class="sidebar-header">Fleet</div>
+      <div id="fleetList" class="fleet-list"></div>
+      <button id="loadServerBtn" type="button" class="btn-secondary sidebar-footer-btn">Load from server</button>
+    </aside>
+
+    <!-- Main content -->
+    <main class="content">
+      <nav class="tab-bar" role="tablist">
+        <button class="tab active" role="tab" data-tab="code">Code</button>
+        <button class="tab" role="tab" data-tab="builder">Builder</button>
+        <button class="tab" role="tab" data-tab="connect">Connect</button>
+        <button class="tab" role="tab" data-tab="voice">&#127908; Voice KWS</button>
+      </nav>
+
+      <!-- ── Code tab ── -->
+      <section id="tab-code" class="tab-panel" role="tabpanel">
+        <div class="tool-row">
+          <label class="inline-label">Robot
+            <span id="codeRobotName" class="robot-pill">none selected</span>
+          </label>
+          <label class="inline-label">Target
+            <select id="targetSel">
+              <option value="lego-stock-python">LEGO Stock Python</option>
+              <option value="pybricks-python">Pybricks Python</option>
+            </select>
+          </label>
+          <label class="inline-label">Intent
+            <select id="intentSel">
+              <option value="beep_hello">Beep Hello</option>
+              <option value="safe_probe">Safe Motor Probe</option>
+              <option value="drive_forward">Drive Forward</option>
+              <option value="wave">Wave / Action</option>
+              <option value="custom">Custom (edit below)</option>
+            </select>
+          </label>
+          <button id="generateBtn" type="button">Generate</button>
+          <button id="downloadLmsBtn" type="button">&#8595; Download .lms</button>
+          <button id="runUsbBtn" type="button" disabled>&#9654; Run via USB</button>
+          <button id="saveLmsBtn" type="button" class="btn-secondary">Save to server</button>
+        </div>
+        <div id="editorWrap">
+          <textarea id="editorArea">
+# Select a robot and click Generate
+</textarea>
+        </div>
+        <div id="codeStatus" class="status-bar"></div>
+      </section>
+
+      <!-- ── Builder tab ── -->
+      <section id="tab-builder" class="tab-panel hidden" role="tabpanel">
+        <div class="builder-form">
+          <div class="form-row">
+            <label>Goal
+              <input id="goalInput" value="make the robot wave safely">
+            </label>
+            <label>Audience
+              <select id="audienceInput">
+                <option value="kid">kid</option>
+                <option value="family">family</option>
+                <option value="classroom">classroom</option>
+                <option value="maker">maker</option>
+              </select>
+            </label>
+            <label>Session ID
+              <input id="sessionIdInput" placeholder="auto-generated">
+            </label>
+          </div>
+          <div class="action-row">
+            <button id="startBuilderBtn" type="button">Start Session</button>
+            <button id="handoffBtn" type="button" class="btn-secondary">Handoff Steps</button>
+            <button id="summaryBtn" type="button" class="btn-secondary">Summarize</button>
+          </div>
+          <label>Observation
+            <textarea id="observationInput" rows="3" placeholder="The right motor did not move. Hub light stayed white."></textarea>
+          </label>
+          <button id="observeBtn" type="button">Record Observation</button>
+          <div id="builderResult" class="result-grid"></div>
+        </div>
+        <div id="builderLog" class="log-pane"></div>
+      </section>
+
+      <!-- ── Connect tab ── -->
+      <section id="tab-connect" class="tab-panel hidden" role="tabpanel">
+
+        <!-- ── Bluetooth (recommended) ── -->
+        <div class="connect-section">
+          <h2>&#128274; Connect via Bluetooth (recommended)</h2>
+          <p class="note">Works with stock LEGO firmware over BLE. Uses the Pybricks BLE UART service when Pybricks firmware is installed. Chrome/Edge on any OS, Android Chrome, or the desktop app.</p>
+
+          <div class="setup-steps">
+            <div class="setup-step"><span class="step-num">1</span><span>Make sure the hub is <strong>on</strong> and Bluetooth is enabled on your device.</span></div>
+            <div class="setup-step"><span class="step-num">2</span><span>Click <strong>Connect via Bluetooth</strong>. A device picker opens — select your hub (named <em>Technic Hub</em>, <em>LEGO Hub</em>, or similar).</span></div>
+            <div class="setup-step"><span class="step-num">3</span><span>Hub running <strong>Pybricks firmware</strong>: full REPL available. Hub running <strong>stock LEGO firmware</strong>: limited (beep/status only — use Download .lms for full programs).</span></div>
+          </div>
+
+          <div class="action-row">
+            <button id="bleConnectBtn" type="button">&#128274; Connect via Bluetooth</button>
+            <button id="bleDisconnectBtn" type="button" class="btn-secondary" disabled>Disconnect BLE</button>
+          </div>
+          <div id="bleInfo" class="hub-info-box"></div>
+          <div id="bleError" class="connect-error hidden"></div>
+        </div>
+
+        <!-- ── USB / Web Serial (fallback) ── -->
+        <div class="connect-section">
+          <h2>&#128268; USB Hub Connection (Web Serial)</h2>
+          <p class="note">Requires Pybricks firmware on the hub. Stock LEGO firmware exposes a HID device, not a serial port — use Bluetooth or download .lms files instead.</p>
+
+          <div class="setup-steps">
+            <div class="setup-step">
+              <span class="step-num">1</span>
+              <span>Flash <strong>Pybricks firmware</strong> (<a href="https://code.pybricks.com" target="_blank" rel="noopener">code.pybricks.com</a>), then plug in via USB.</span>
+            </div>
+            <div class="setup-step">
+              <span class="step-num">2</span>
+              <span>Click <strong>Connect Hub via USB</strong>. Pick the port — usually <em>USB Serial Device (COMx)</em> on Windows or <em>/dev/ttyACM0</em> on Linux.</span>
+            </div>
+            <div class="setup-step">
+              <span class="step-num">3</span>
+              <span>If the port picker is empty, try <strong>Show all ports</strong> or install the <a href="https://apps.microsoft.com/detail/9N2PL4JM2P3F" target="_blank" rel="noopener">LEGO MINDSTORMS app</a> to register the COM driver.</span>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button id="connectBtn" type="button">Connect Hub via USB</button>
+            <button id="connectAllPortsBtn" type="button" class="btn-secondary">Show all ports</button>
+            <button id="disconnectBtn" type="button" class="btn-secondary" disabled>Disconnect USB</button>
+          </div>
+          <div id="hubInfo" class="hub-info-box"></div>
+          <div id="connectError" class="connect-error hidden"></div>
+        </div>
+
+        <!-- ── Shared terminal ── -->
+        <div class="connect-section">
+          <h2>Hub Terminal</h2>
+          <p class="note">Send raw commands to the hub REPL (BLE or USB, Pybricks firmware required). Try: <code>hub.speaker.beep()</code></p>
+          <div id="connectedVia" class="hub-info-box" style="margin-bottom:6px"></div>
+          <textarea id="terminalInput" rows="2" placeholder="hub.speaker.beep()"></textarea>
+          <div class="action-row">
+            <button id="sendReplBtn" type="button" disabled>Send to REPL</button>
+            <button id="clearTermBtn" type="button" class="btn-secondary">Clear</button>
+          </div>
+          <pre id="terminalOutput" class="terminal-out"></pre>
+        </div>
+
+        <div class="connect-section">
+          <h2>Open .lms Files</h2>
+          <p class="note">Inspect any .lms file (Python or Blocks) saved from the LEGO MINDSTORMS app or downloaded from this tool.</p>
+          <input id="lmsFileInput" type="file" accept=".lms">
+          <pre id="lmsReadOutput" class="terminal-out"></pre>
+        </div>
+      </section>
+
+        <div class="connect-section">
+          <h2>Open .lms Files</h2>
+          <p class="note">Inspect any .lms file (Python or Blocks) saved from the LEGO MINDSTORMS app or downloaded from this tool.</p>
+          <input id="lmsFileInput" type="file" accept=".lms">
+          <pre id="lmsReadOutput" class="terminal-out"></pre>
+        </div>
+      </section>
+
+      <!-- ── Voice KWS tab ── -->
+      <section id="tab-voice" class="tab-panel hidden" role="tabpanel">
+        <div class="connect-section">
+          <h2>Edge Impulse Keyword Spotting</h2>
+          <p class="note">Load your Edge Impulse KWS model (WebAssembly deployment) to control the robot with voice commands. Train a model at <strong>edgeimpulse.com</strong> with keywords like <em>forward, stop, left, right, wave</em>, then export as <em>WebAssembly → Standalone</em>.</p>
+
+          <div class="setup-steps">
+            <div class="setup-step"><span class="step-num">1</span><span>In Edge Impulse: go to <strong>Deployment → WebAssembly → Standalone</strong> and download the ZIP.</span></div>
+            <div class="setup-step"><span class="step-num">2</span><span>Extract the ZIP and pick the <strong><code>edge-impulse-standalone.js</code></strong> file below.</span></div>
+            <div class="setup-step"><span class="step-num">3</span><span>Click <strong>Load Model</strong>, then <strong>Start Listening</strong>. Allow microphone access when prompted.</span></div>
+            <div class="setup-step"><span class="step-num">4</span><span>Speak a keyword — detected words above the confidence threshold will trigger robot actions via USB REPL.</span></div>
+          </div>
+
+          <div class="form-row">
+            <label class="inline-label">Model .js file
+              <input id="eiModelFile" type="file" accept=".js,.wasm">
+            </label>
+            <span class="note" style="align-self:center">— or —</span>
+            <label class="inline-label" style="flex:1">CDN / URL
+              <input id="eiModelUrl" type="url" placeholder="https://unpkg.com/edge-impulse-standalone@...">
+            </label>
+            <button id="eiLoadBtn" type="button">Load Model</button>
+          </div>
+          <div id="eiModelInfo" class="hub-info-box"></div>
+
+          <div class="action-row">
+            <button id="eiStartBtn" type="button" disabled>&#127908; Start Listening</button>
+            <button id="eiStopBtn" type="button" class="btn-secondary" disabled>Stop</button>
+            <label class="inline-label">Confidence threshold
+              <input id="eiThreshold" type="number" value="0.7" min="0.1" max="0.99" step="0.05" style="width:70px">
+            </label>
+          </div>
+
+          <div id="eiResults" class="kws-results"></div>
+        </div>
+
+        <div class="connect-section">
+          <h2>Keyword → Action Mapping</h2>
+          <p class="note">Map each model label to a robot action. Actions run as REPL commands on the connected hub (requires Pybricks) or as server code-gen + download.</p>
+          <div id="kwsMappingTable" class="kws-mapping">
+            <p class="note">Load a model to see available labels.</p>
+          </div>
+          <div id="kwsLog" class="log-pane" style="margin-top:8px;min-height:80px"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- CDN scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
