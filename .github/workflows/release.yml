@@ -12,7 +12,8 @@ on:
         default: true
 
 permissions:
-  contents: write   # needed to upload to GitHub Releases
+  contents: write   # upload to GitHub Releases
+  id-token: write   # npm provenance
 
 jobs:
   # ── 1. Run tests ──────────────────────────────────────────────────────────────
@@ -101,11 +102,89 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          generate_release_notes: true
           files: |
             dist-electron/*.exe
             dist-electron/*.msi
 
-  # ── 3. Android APK ────────────────────────────────────────────────────────────
+  # ── 4. macOS desktop app (Electron) ───────────────────────────────────────────
+  build-mac:
+    name: Build macOS (.dmg)
+    needs: [test, screenshot]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app (macOS)
+        run: npm run electron:build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Code-signing: set these secrets in repo settings to notarize
+          # CSC_LINK: ${{ secrets.MAC_CERTS }}
+          # CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer
+          path: dist-electron/*.dmg
+          if-no-files-found: warn
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-electron/*.dmg
+
+  # ── 5. Linux desktop app (Electron) ───────────────────────────────────────────
+  build-linux:
+    name: Build Linux (.AppImage + .deb)
+    needs: [test, screenshot]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app (Linux)
+        run: npm run electron:build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+          if-no-files-found: warn
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+
+  # ── 6. Android APK ────────────────────────────────────────────────────────────
   # PREREQUISITE: The Android project must be committed to android/MindstormsAICreator/
   # in this repo. Run scripts/sync-android-to-repo.ps1 locally then commit + push.
   build-android:
@@ -171,3 +250,32 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: android/MindstormsAICreator/app/build/outputs/apk/release/*.apk
+
+  # ── 7. Publish to npm ─────────────────────────────────────────────────────────
+  # Publishes the MCP server package to npmjs.org on every version tag.
+  # Requires NPM_TOKEN secret set in repo Settings → Secrets.
+  publish-npm:
+    name: Publish to npm
+    needs: [build-windows, build-mac, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies (no scripts to avoid Electron download)
+        run: npm ci --ignore-scripts
+
+      - name: Run tests before publish
+        run: npm test
+
+      - name: Publish package
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
