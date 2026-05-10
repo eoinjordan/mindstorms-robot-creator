@@ -351,6 +351,146 @@ function generateCode(profile, target, intent, customCode) {
 
 let blocklyWorkspace = null;
 
+// ─── Python autocomplete ──────────────────────────────────────────────────────
+const MINDSTORMS_WORDS = [
+  // Robot Inventor / SPIKE classes + members
+  "MSHub","Motor","MotorPair","ColorSensor","DistanceSensor","ForceSensor","UltrasonicSensor","App",
+  // Pybricks classes
+  "InventorHub","EV3Brick","CityHub","TechnicHub","PrimeHub",
+  // Motor methods
+  "run_for_seconds","run_for_degrees","run_angle","run_time","run_until_stalled",
+  "run_target","run","start","stop","brake","hold","dc","reset_angle","angle","speed","load",
+  // Pair
+  "move","move_tank","move_steering",
+  // Hub
+  "speaker","status_light","battery","imu","buttons","display",
+  "beep","play_notes","on","off","blink",
+  // Sensor methods
+  "color","ambient","reflection","rgb","distance","presence","force","touched",
+  // Tools
+  "wait_for_seconds","wait_until","wait","StopWatch","multitask",
+  // Parameters / enums
+  "Port","Direction","Color","Stop","Button","Axis","Side",
+  "COUNTERCLOCKWISE","CLOCKWISE","BLACK","WHITE","RED","GREEN","BLUE","YELLOW","ORANGE","VIOLET",
+  // mindstorms module
+  "from mindstorms import","from mindstorms.control import","from mindstorms.operator import",
+  "from pybricks.hubs import","from pybricks.pupdevices import",
+  "from pybricks.parameters import","from pybricks.tools import",
+  // NQC keywords
+  "task","sub","SetMotor","SetSensor","PlaySound","ClearTimer","GetTimer","Until",
+  "SENSOR_1","SENSOR_2","SENSOR_3","OUT_A","OUT_B","OUT_C",
+  "OUT_FWD","OUT_REV","OUT_FLOAT","OUT_OFF",
+  // Python builtins
+  "import","from","def","class","return","for","while","if","elif","else",
+  "in","range","print","True","False","None","and","or","not","is","try","except","pass"
+];
+
+function mindstormsHint(cm) {
+  const cur = cm.getCursor();
+  const token = cm.getTokenAt(cur);
+  let word = token.string;
+  let start = token.start;
+  const m = word.match(/[a-zA-Z_]\w*$/);
+  if (m) { word = m[0]; start = token.end - word.length; } else { word = ""; }
+  const docWords = [...new Set((cm.getValue().match(/\b[a-zA-Z_]\w+/g) || []).filter(w => w.length > 2))];
+  const all = [...new Set([...MINDSTORMS_WORDS, ...docWords])];
+  const lower = word.toLowerCase();
+  const list = all.filter(w => w.toLowerCase().startsWith(lower) && w !== word).sort().slice(0, 24);
+  return { list, from: CodeMirror.Pos(cur.line, start), to: CodeMirror.Pos(cur.line, token.end) };
+}
+
+// ─── LLM inline completion ──────────────────────────────────────────────────────
+const llm = { url: "", model: "", backend: "" };
+let ghostMark = null;
+let pendingCompletion = "";
+
+function showGhostText(text) {
+  clearGhostText();
+  if (!text || !editor) return;
+  const line = text.split("\n")[0];
+  if (!line.trim()) return;
+  const cur = editor.getCursor();
+  const span = document.createElement("span");
+  span.className = "cm-ghost-text";
+  span.textContent = line;
+  ghostMark = editor.setBookmark(cur, { widget: span, insertLeft: false });
+  pendingCompletion = line;
+}
+
+function clearGhostText() {
+  if (ghostMark) { ghostMark.clear(); ghostMark = null; }
+  pendingCompletion = "";
+}
+
+function acceptGhostText() {
+  if (!pendingCompletion) return false;
+  editor.replaceRange(pendingCompletion, editor.getCursor());
+  clearGhostText();
+  return true;
+}
+
+async function detectLlm() {
+  const pill = el("aiPill");
+  const urlInput = el("aiEndpointInput");
+  const modelInput = el("aiModelInput");
+  pill.textContent = "\u25cf detecting\u2026";
+  pill.className = "pill pill-off";
+  llm.url = ""; llm.model = ""; llm.backend = "";
+  const base = (urlInput?.value || "").trim().replace(/\/$/, "") || "http://localhost:11434";
+  // Ollama
+  try {
+    const r = await fetch(`${base}/api/tags`, { signal: AbortSignal.timeout(2500) });
+    if (r.ok) {
+      const data = await r.json();
+      llm.url = base; llm.backend = "ollama";
+      llm.model = modelInput?.value?.trim() || "codellama:7b";
+      const names = (data.models || []).map(m => m.name).join(", ");
+      pill.textContent = `\u25cf Ollama (${llm.model})`;
+      pill.className = "pill pill-on";
+      setCodeStatus(`AI ready: Ollama at ${base}. Available: ${names || "(none)"}`);
+      return;
+    }
+  } catch {}
+  // llama.cpp
+  const cbase = (urlInput?.value || "").trim().replace(/\/$/, "") || "http://localhost:8080";
+  try {
+    const r = await fetch(`${cbase}/health`, { signal: AbortSignal.timeout(2500) });
+    if (r.ok) {
+      llm.url = cbase; llm.backend = "llamacpp"; llm.model = "";
+      pill.textContent = "\u25cf llama.cpp";
+      pill.className = "pill pill-on";
+      setCodeStatus(`AI ready: llama.cpp at ${cbase}`);
+      return;
+    }
+  } catch {}
+  pill.textContent = "\u25cf AI off";
+  pill.className = "pill pill-off";
+  setCodeStatus("No local AI found. Start Ollama (ollama serve) or llama.cpp, enter its URL above, then click Detect AI.", true);
+}
+
+async function getLlmCompletion(prefix, suffix) {
+  if (!llm.url) return "";
+  try {
+    if (llm.backend === "ollama") {
+      const body = { model: llm.model, prompt: prefix, stream: false,
+        options: { num_predict: 80, temperature: 0.15, stop: ["\n\n", "```", "def ", "class ", "\n#"] } };
+      if (suffix) body.suffix = suffix;
+      const r = await fetch(`${llm.url}/api/generate`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(6000) });
+      if (!r.ok) return "";
+      return ((await r.json()).response || "").trimStart();
+    }
+    if (llm.backend === "llamacpp") {
+      const body = { prompt: prefix, n_predict: 80, temperature: 0.15, stop: ["\n\n", "```"] };
+      const r = await fetch(`${llm.url}/completion`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(6000) });
+      if (!r.ok) return "";
+      return ((await r.json()).content || "").trimStart();
+    }
+  } catch {}
+  return "";
+}
+
 function isBlocklyTarget() {
   return el("targetSel")?.value === "blockly-python";
 }
@@ -588,12 +728,16 @@ function getBlocklyPython(profile) {
 async function showBlocklyEditor() {
   el("editorWrap").style.display = "none";
   const div = el("blocklyDiv");
-  div.style.display = "flex";
+  div.style.display = "block";
   setCodeStatus("Loading Blockly...");
   try {
     await loadBlocklyScripts();
+    void div.offsetWidth; void div.offsetHeight; // force layout before Blockly measures
     initBlockly();
-    if (blocklyWorkspace) blocklyWorkspace.resize();
+    // Double-RAF ensures browser has laid out the div at full width before svgResize
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (blocklyWorkspace) Blockly.svgResize(blocklyWorkspace);
+    }));
     setCodeStatus("");
   } catch (e) {
     setCodeStatus("Could not load Blockly (offline?)", true);
@@ -1366,9 +1510,42 @@ function initEditor() {
     indentUnit: 4,
     indentWithTabs: false,
     lineWrapping: false,
-    autofocus: false
+    autofocus: false,
+    extraKeys: {
+      "Ctrl-Space": (cm) => { clearGhostText(); cm.showHint({ hint: mindstormsHint, completeSingle: false }); },
+      "Tab": (cm) => {
+        if (pendingCompletion && acceptGhostText()) return;
+        cm.execCommand("indentMore");
+      }
+    },
+    hintOptions: { hint: mindstormsHint, completeSingle: false, closeOnUnfocus: true }
   });
   editor.setSize("100%", "100%");
+
+  // Dropdown on '.' or identifier chars
+  editor.on("keyup", (cm, e) => {
+    if (pendingCompletion && e.key !== "Tab" && e.key !== "Shift") clearGhostText();
+    if (e.key === "." || (e.key.length === 1 && /[a-zA-Z_]/.test(e.key))) {
+      if (!cm.state.completionActive) cm.showHint({ hint: mindstormsHint, completeSingle: false });
+    }
+  });
+
+  // LLM inline suggestion on idle
+  let llmTimer = null;
+  editor.on("change", (cm, change) => {
+    if (change.origin === "+delete") { clearGhostText(); return; }
+    clearGhostText();
+    clearTimeout(llmTimer);
+    if (isBlocklyTarget() || !llm.url) return;
+    llmTimer = setTimeout(async () => {
+      const cur = cm.getCursor();
+      const prefix = cm.getRange({ line: 0, ch: 0 }, cur);
+      if (prefix.trim().length < 30) return;
+      const suffix = cm.getRange(cur, { line: Math.min(cur.line + 5, cm.lastLine()), ch: 999 });
+      const completion = await getLlmCompletion(prefix, suffix);
+      if (completion) showGhostText(completion);
+    }, 900);
+  });
 }
 
 function setCodeStatus(msg, isError = false) {
@@ -1694,6 +1871,145 @@ async function doReadLmsFile(file) {
   }
 }
 
+// ─── RCX IR Transport ────────────────────────────────────────────────────────
+
+class RcxTransport {
+  constructor() { this.port = null; this.writer = null; this.readBuf = []; this._reading = false; }
+
+  async connect() {
+    this.port = await navigator.serial.requestPort({ filters: [] });
+    await this.port.open({ baudRate: 2400, dataBits: 8, stopBits: 1, parity: "none", flowControl: "none" });
+    this.writer = this.port.writable.getWriter();
+    this._reading = true;
+    this._readLoop();
+  }
+
+  async _readLoop() {
+    const reader = this.port.readable.getReader();
+    try {
+      while (this._reading) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        for (const b of value) this.readBuf.push(b);
+      }
+    } catch {} finally { reader.releaseLock(); }
+  }
+
+  async _readByte(ms = 200) {
+    const t = Date.now() + ms;
+    while (Date.now() < t) {
+      if (this.readBuf.length) return this.readBuf.shift();
+      await new Promise(r => setTimeout(r, 5));
+    }
+    return null;
+  }
+
+  // Frames cmdBytes with RCX preamble + complement-encoded bytes, drains echo, returns reply.
+  async sendMessage(cmdBytes) {
+    this.readBuf = [];
+    let sum = 0;
+    for (const b of cmdBytes) sum = (sum + b) & 0xFF;
+    const msg = [0x55, 0xFF, 0x00];
+    for (const b of cmdBytes) { msg.push(b, (~b) & 0xFF); }
+    msg.push(sum, (~sum) & 0xFF);
+    await this.writer.write(new Uint8Array(msg));
+    // Drain echoed bytes (half-duplex: tower reflects every sent byte)
+    for (let i = 0; i < msg.length; i++) await this._readByte(30);
+    return this._readReply();
+  }
+
+  async _readReply() {
+    let state = 0; const data = [];
+    const deadline = Date.now() + 600;
+    while (Date.now() < deadline) {
+      const b = await this._readByte(30);
+      if (b === null) continue;
+      if (state === 0 && b === 0x55) { state = 1; continue; }
+      if (state === 1 && b === 0xFF) { state = 2; continue; }
+      if (state === 2 && b === 0x00) { state = 3; continue; }
+      if (state === 3) {
+        const c = await this._readByte(30);
+        if (c !== null && (b ^ c) === 0xFF) { data.push(b); } else break;
+      }
+    }
+    return data;
+  }
+
+  async ping()  { try { const r = await this.sendMessage([0x10]); return r[0] === 0x10; } catch { return false; } }
+  async beep(id = 1) { await this.sendMessage([0x51, id & 7]); }
+  async stopAll() { await this.sendMessage([0x21, 0x07, 0x00]); }
+
+  // port: 'A'|'B'|'C'  dir: 'forward'|'backward'|'stop'  pwr100: 0-100
+  async setMotor(port, dir, pwr100) {
+    const mask = port === "A" ? 1 : port === "B" ? 2 : 4;
+    const p    = Math.max(0, Math.min(7, Math.round(pwr100 / 100 * 7)));
+    if (dir === "stop") {
+      await this.sendMessage([0x21, mask, 0x00]);
+    } else {
+      const d = dir === "forward" ? 0x02 : 0x00;
+      await this.sendMessage([0xE1, mask, d]);       // SetOutputDirection
+      await this.sendMessage([0xD1, mask, 0x02, p]); // SetOutputPower (src=const)
+      await this.sendMessage([0x21, mask, 0x01]);    // SetOutputMode = on
+    }
+  }
+
+  async disconnect() {
+    this._reading = false;
+    try { await this.writer?.close(); } catch {}
+    try { await this.port?.close(); } catch {}
+    this.port = null; this.writer = null;
+  }
+  get connected() { return !!this.port; }
+}
+
+const rcxTransport = new RcxTransport();
+
+function updateRcxUi() {
+  const ok = rcxTransport.connected;
+  el("rcxConnectBtn").disabled = ok;
+  el("rcxDisconnectBtn").disabled = !ok;
+  el("rcxPingBtn").disabled = !ok;
+  el("rcxBeepBtn").disabled = !ok;
+  el("rcxStopAllBtn").disabled = !ok;
+  el("rcxControls").style.display = ok ? "grid" : "none";
+}
+
+async function doRcxConnect() {
+  if (!navigator.serial) { el("rcxStatus").textContent = "Web Serial not supported — use Chrome or Edge"; return; }
+  try {
+    el("rcxStatus").textContent = "Selecting COM port…";
+    await rcxTransport.connect();
+    updateRcxUi();
+    el("rcxStatus").textContent = "Port open — pinging RCX…";
+    const alive = await rcxTransport.ping();
+    el("rcxStatus").textContent = alive
+      ? "RCX alive ✓ — ready to control"
+      : "Port open but no ping reply. Check: RCX on, batteries OK, tower aimed at IR window.";
+  } catch (e) { el("rcxStatus").textContent = `Connect failed: ${e.message}`; updateRcxUi(); }
+}
+
+async function doRcxDisconnect() {
+  await rcxTransport.disconnect();
+  updateRcxUi();
+  el("rcxStatus").textContent = "";
+}
+
+async function doRcxPing() {
+  el("rcxStatus").textContent = "Pinging…";
+  const ok = await rcxTransport.ping();
+  el("rcxStatus").textContent = ok ? "Ping OK — RCX alive ✓" : "No reply — aim tower at RCX IR window";
+}
+
+async function doRcxBeep()    { try { await rcxTransport.beep(1); } catch (e) { el("rcxStatus").textContent = e.message; } }
+async function doRcxStopAll() {
+  try { await rcxTransport.stopAll(); el("rcxStatus").textContent = "All motors stopped"; }
+  catch (e) { el("rcxStatus").textContent = e.message; }
+}
+async function doRcxMotor(port, dir, power) {
+  try { await rcxTransport.setMotor(port, dir, power); el("rcxStatus").textContent = `Motor ${port}: ${dir} @ ${power}%`; }
+  catch (e) { el("rcxStatus").textContent = e.message; }
+}
+
 // ─── Tab switching ────────────────────────────────────────────────────────────
 
 function switchTab(name) {
@@ -1701,7 +2017,10 @@ function switchTab(name) {
   document.querySelectorAll(".tab-panel").forEach(p => {
     p.classList.toggle("hidden", p.id !== `tab-${name}`);
   });
-  if (name === "code") { if (!isBlocklyTarget() && editor) editor.refresh(); }
+  if (name === "code") {
+    if (isBlocklyTarget() && blocklyWorkspace) requestAnimationFrame(() => Blockly.svgResize(blocklyWorkspace));
+    else if (editor) editor.refresh();
+  }
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -1762,6 +2081,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fleet sidebar
   el("loadServerBtn").addEventListener("click", doLoadServerProfiles);
+
+  // RCX IR Tower
+  el("rcxConnectBtn").addEventListener("click", doRcxConnect);
+  el("rcxDisconnectBtn").addEventListener("click", doRcxDisconnect);
+  el("rcxPingBtn").addEventListener("click", doRcxPing);
+  el("rcxBeepBtn").addEventListener("click", doRcxBeep);
+  el("rcxStopAllBtn").addEventListener("click", doRcxStopAll);
+  document.querySelectorAll(".rcx-dir-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const panel = e.target.closest(".rcx-motor-panel");
+      if (!panel) return;
+      const power = parseInt(panel.querySelector(".rcx-power-slider").value, 10);
+      doRcxMotor(panel.dataset.motor, btn.dataset.dir, power);
+    });
+  });
+
+  // AI completions
+  el("aiDetectBtn")?.addEventListener("click", detectLlm);
+
+  // Blockly resize on window resize
+  window.addEventListener("resize", () => {
+    if (blocklyWorkspace && el("blocklyDiv").style.display !== "none")
+      requestAnimationFrame(() => Blockly.svgResize(blocklyWorkspace));
+  });
 
   updateHubPill();
 });

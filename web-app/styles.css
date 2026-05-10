@@ -183,12 +183,24 @@ body {
   border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm);
 }
 #blocklyDiv {
-  display: none; flex: 1; min-height: 380px;
+  display: none; flex: 1; min-height: 400px;
+  width: 100%; position: relative;
   border: 1px solid var(--line); box-shadow: var(--shadow-sm);
   border-radius: var(--radius);
 }
+.cm-ghost-text { color: #6b7280; font-style: italic; pointer-events: none; user-select: none; }
+.ai-status-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 2px 0; flex-shrink: 0; }
 .CodeMirror { height: 100% !important; font-size: 13px; font-family: "Cascadia Code", "Fira Code", "Consolas", monospace; flex: 1; }
+.CodeMirror-hints { font-family: "Cascadia Code", "Fira Code", "Consolas", monospace; font-size: 12px; z-index: 9999; }
 .status-bar { font-size: 12px; padding: 4px 8px; border-radius: 4px; color: var(--muted); min-height: 22px; }
+/* ── RCX motor controls ── */
+.rcx-motor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+.rcx-motor-panel { background: var(--sidebar2); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.rcx-motor-label { color: #5eead4; font-weight: 700; font-size: 13px; }
+.rcx-motor-btns { display: flex; gap: 6px; }
+.rcx-dir-btn { flex: 1; padding: 6px 4px; font-size: 12px; font-weight: 600; background: var(--sidebar3); color: #c8ddd9; border: 1px solid rgba(255,255,255,.1); border-radius: 4px; cursor: pointer; transition: background .12s; }
+.rcx-dir-btn:hover { background: var(--primary); color: #fff; }
+.rcx-power-slider { width: 100%; accent-color: var(--primary); }
 .status-bar.ok    { color: var(--ok); }
 .status-bar.error { color: var(--danger); }
 

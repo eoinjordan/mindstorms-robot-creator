@@ -7,6 +7,7 @@
   <!-- CodeMirror 5 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/hint/show-hint.min.css">
   <!-- PWA / Icons -->
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon-192.svg">
@@ -102,6 +103,17 @@
           <button id="downloadLmsBtn" type="button">&#8595; Download .lms</button>
           <button id="runUsbBtn" type="button" disabled>&#9654; Run via USB</button>
           <button id="saveLmsBtn" type="button" class="btn-secondary">Save to server</button>
+        </div>
+        <div class="ai-status-row">
+          <span id="aiPill" class="pill pill-off" title="No AI — click Detect AI">&#9679; AI off</span>
+          <label class="inline-label" style="flex:0 0 auto">Model
+            <input id="aiModelInput" type="text" value="codellama:7b" style="width:120px" spellcheck="false" autocomplete="off">
+          </label>
+          <label class="inline-label" style="flex:0 0 auto">Endpoint
+            <input id="aiEndpointInput" type="url" value="http://localhost:11434" style="width:190px" spellcheck="false">
+          </label>
+          <button id="aiDetectBtn" type="button" class="btn-secondary">Detect AI</button>
+          <span class="note" style="font-size:11px">Ollama &middot; llama.cpp &middot; Ctrl+Space for hints &middot; Tab to accept AI suggestion</span>
         </div>
         <div id="editorWrap">
           <textarea id="editorArea">
@@ -219,13 +231,55 @@
           <input id="lmsFileInput" type="file" accept=".lms">
           <pre id="lmsReadOutput" class="terminal-out"></pre>
         </div>
-      </section>
 
-        <div class="connect-section">
-          <h2>Open .lms Files</h2>
-          <p class="note">Inspect any .lms file (Python or Blocks) saved from the LEGO MINDSTORMS app or downloaded from this tool.</p>
-          <input id="lmsFileInput" type="file" accept=".lms">
-          <pre id="lmsReadOutput" class="terminal-out"></pre>
+        <!-- ── RCX IR Tower (Serial / USB-to-Serial) ── -->
+        <div class="connect-section" id="rcxSection">
+          <h2>&#128268; RCX IR Tower (Serial / USB&#8209;to&#8209;Serial)</h2>
+          <p class="note">Connect the original LEGO RCX 1.x/2.0 brick via the serial IR tower and a USB-to-serial adapter (Prolific PL2303, FTDI, etc.). Requires Chrome or Edge with Web Serial API enabled.</p>
+          <div class="setup-steps">
+            <div class="setup-step"><span class="step-num">1</span><span>Install adapter driver. Plug adapter + IR tower into USB. Windows: check Device Manager for the COM port number.</span></div>
+            <div class="setup-step"><span class="step-num">2</span><span>Turn the RCX on. The LCD should show a running timer. Aim the tower at the RCX&#8217;s IR window (front of brick, ~30 cm or less).</span></div>
+            <div class="setup-step"><span class="step-num">3</span><span>Click <strong>Connect RCX</strong> and select the COM port from the browser picker.</span></div>
+            <div class="setup-step"><span class="step-num">4</span><span>Click <strong>Ping</strong> to verify two-way IR communication, then use the motor controls below.</span></div>
+          </div>
+          <div class="action-row">
+            <button id="rcxConnectBtn" type="button">&#128268; Connect RCX</button>
+            <button id="rcxDisconnectBtn" type="button" class="btn-secondary" disabled>Disconnect</button>
+            <button id="rcxPingBtn" type="button" class="btn-secondary" disabled>Ping</button>
+            <button id="rcxBeepBtn" type="button" class="btn-secondary" disabled>Beep</button>
+            <button id="rcxStopAllBtn" type="button" class="btn-secondary" disabled>Stop All</button>
+          </div>
+          <div id="rcxStatus" class="hub-info-box"></div>
+          <div id="rcxControls" class="rcx-motor-grid" style="display:none">
+            <div class="rcx-motor-panel" data-motor="A">
+              <div class="rcx-motor-label">Motor A</div>
+              <div class="rcx-motor-btns">
+                <button class="rcx-dir-btn" data-dir="forward">&#9650; Fwd</button>
+                <button class="rcx-dir-btn" data-dir="stop">&#9646; Stop</button>
+                <button class="rcx-dir-btn" data-dir="backward">&#9660; Rev</button>
+              </div>
+              <input class="rcx-power-slider" type="range" min="0" max="100" value="70" title="Power %">
+            </div>
+            <div class="rcx-motor-panel" data-motor="B">
+              <div class="rcx-motor-label">Motor B</div>
+              <div class="rcx-motor-btns">
+                <button class="rcx-dir-btn" data-dir="forward">&#9650; Fwd</button>
+                <button class="rcx-dir-btn" data-dir="stop">&#9646; Stop</button>
+                <button class="rcx-dir-btn" data-dir="backward">&#9660; Rev</button>
+              </div>
+              <input class="rcx-power-slider" type="range" min="0" max="100" value="70" title="Power %">
+            </div>
+            <div class="rcx-motor-panel" data-motor="C">
+              <div class="rcx-motor-label">Motor C</div>
+              <div class="rcx-motor-btns">
+                <button class="rcx-dir-btn" data-dir="forward">&#9650; Fwd</button>
+                <button class="rcx-dir-btn" data-dir="stop">&#9646; Stop</button>
+                <button class="rcx-dir-btn" data-dir="backward">&#9660; Rev</button>
+              </div>
+              <input class="rcx-power-slider" type="range" min="0" max="100" value="70" title="Power %">
+            </div>
+          </div>
+          <p class="note" style="margin-top:10px">To upload compiled programs: generate NQC code in the Code tab, then use <a href="https://bricxcc.sourceforge.net/" target="_blank" rel="noopener">BricxCC</a> or <code>nqc</code> CLI. Direct program upload via Web Serial is in progress.</p>
         </div>
       </section>
 
@@ -282,6 +336,8 @@
 <!-- CDN scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/hint/anyword-hint.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
 <script src="./app.js"></script>
 </body>
