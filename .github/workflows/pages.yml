@@ -9,7 +9,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  administration: write  # needed to enable Pages via API on first run
 
 # Only one deployment at a time; cancel in-flight runs on new push
 concurrency:
