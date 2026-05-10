@@ -16,9 +16,9 @@ License: MIT
 AuthorName: Eoin Jordan
 AuthorWebSite: https://github.com/eoinjordan
 
-SourceCode: https://github.com/eoinjordan/mindstorms-robot-creator
-IssueTracker: https://github.com/eoinjordan/mindstorms-robot-creator/issues
-Changelog: https://github.com/eoinjordan/mindstorms-robot-creator/releases
+SourceCode: https://github.com/eoinjordan/mindstorms-robot-creator-android
+IssueTracker: https://github.com/eoinjordan/mindstorms-robot-creator-android/issues
+Changelog: https://github.com/eoinjordan/mindstorms-robot-creator-android/releases
 
 AutoName: Mindstorms Robot Creator
 
@@ -49,13 +49,13 @@ Description: |-
   All source code is MIT-licensed and available on GitHub.
 
 RepoType: git
-Repo: https://github.com/eoinjordan/mindstorms-robot-creator
+Repo: https://github.com/eoinjordan/mindstorms-robot-creator-android
 
 Builds:
   - versionName: '0.1.0'
     versionCode: 1
     commit: v0.1.0
-    subdir: android/robot-inventor-app
+    subdir: app
     gradle:
       - yes
 
