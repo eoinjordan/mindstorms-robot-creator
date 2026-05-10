@@ -1,0 +1,35 @@
+{
+  "id": "ev3-ev3rstorm",
+  "name": "EV3RSTORM",
+  "family": "ev3",
+  "kit": "LEGO MINDSTORMS EV3 31313",
+  "robotKind": "tracked_drive_shooter",
+  "source": {
+    "portMap": "official-build-instructions",
+    "url": "https://www.lego.com/en-us/themes/mindstorms/learntoprogram"
+  },
+  "controller": {
+    "model": "EV3 Brick 31313",
+    "firmware": "pybricks-or-ev3dev",
+    "connection": ["usb", "bluetooth", "wifi"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "medium-motor", "role": "blaster_arm" },
+    "B": { "kind": "motor", "part": "large-motor", "role": "left_track_drive" },
+    "C": { "kind": "motor", "part": "large-motor", "role": "right_track_drive", "positiveDirection": "counterclockwise" },
+    "1": { "kind": "sensor", "part": "infrared-sensor", "role": "obstacle_detection" },
+    "4": { "kind": "sensor", "part": "color-sensor", "role": "color_detection" }
+  },
+  "sensors": [
+    { "kind": "infrared", "source": "Port.S1" },
+    { "kind": "color", "source": "Port.S4" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C"],
+    "features": ["drive_pair", "arm_motor", "infrared_sensor", "color_sensor"]
+  },
+  "programTargets": ["pybricks-ev3", "ev3dev-python"],
+  "crossGenNotes": "Tank drive (B+C tracks) is equivalent to the tracked_vehicle morphology. Compare with Robot Inventor custom tracked builds or NXT Tribot tank mode.",
+  "license": "CC-BY-4.0"
+}

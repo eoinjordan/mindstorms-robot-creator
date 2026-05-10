@@ -1,0 +1,35 @@
+{
+  "id": "ev3-gripp3r",
+  "name": "GRIPP3R",
+  "family": "ev3",
+  "kit": "LEGO MINDSTORMS EV3 31313",
+  "robotKind": "gripper_drive",
+  "source": {
+    "portMap": "official-build-instructions",
+    "url": "https://www.lego.com/en-us/themes/mindstorms/learntoprogram"
+  },
+  "controller": {
+    "model": "EV3 Brick 31313",
+    "firmware": "pybricks-or-ev3dev",
+    "connection": ["usb", "bluetooth", "wifi"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "medium-motor", "role": "gripper_claw" },
+    "B": { "kind": "motor", "part": "large-motor", "role": "left_drive" },
+    "C": { "kind": "motor", "part": "large-motor", "role": "right_drive", "positiveDirection": "counterclockwise" },
+    "1": { "kind": "sensor", "part": "ultrasonic-sensor", "role": "obstacle_detection" },
+    "4": { "kind": "sensor", "part": "gyro-sensor", "role": "orientation" }
+  },
+  "sensors": [
+    { "kind": "ultrasonic", "source": "Port.S1" },
+    { "kind": "gyro", "source": "Port.S4" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C"],
+    "features": ["drive_pair", "gripper_motor", "ultrasonic_sensor", "gyro_sensor"]
+  },
+  "programTargets": ["pybricks-ev3", "ev3dev-python"],
+  "crossGenNotes": "Gripper morphology — equivalent concept to NXT Tribot claw (nxt-tribot) and Robot Inventor custom gripper builds.",
+  "license": "CC-BY-4.0"
+}

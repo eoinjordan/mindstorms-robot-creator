@@ -1,0 +1,37 @@
+{
+  "id": "nxt-tribot",
+  "name": "Tribot",
+  "family": "nxt",
+  "kit": "LEGO MINDSTORMS NXT 1.0 8527",
+  "robotKind": "two_wheel_drive_claw",
+  "source": {
+    "portMap": "official-build-instructions",
+    "url": "https://www.lego.com/en-us/themes/mindstorms/products/nxt-1-0-8527"
+  },
+  "controller": {
+    "model": "NXT Brick 8527",
+    "firmware": "standard-nxt-or-lejos",
+    "connection": ["usb", "bluetooth"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "nxt-servo-motor", "role": "claw" },
+    "B": { "kind": "motor", "part": "nxt-servo-motor", "role": "left_drive" },
+    "C": { "kind": "motor", "part": "nxt-servo-motor", "role": "right_drive", "positiveDirection": "counterclockwise" },
+    "1": { "kind": "sensor", "part": "ultrasonic-sensor", "role": "obstacle_detection" },
+    "2": { "kind": "sensor", "part": "touch-sensor", "role": "bump_detect" },
+    "3": { "kind": "sensor", "part": "light-sensor", "role": "line_following" }
+  },
+  "sensors": [
+    { "kind": "ultrasonic", "source": "PORT_1" },
+    { "kind": "touch", "source": "PORT_2" },
+    { "kind": "light", "source": "PORT_3" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C"],
+    "features": ["drive_pair", "claw_motor", "ultrasonic_sensor", "touch_sensor", "light_sensor"]
+  },
+  "programTargets": ["nxt-python"],
+  "crossGenNotes": "Two-wheel differential drive with claw — closely equivalent to EV3 GRIPP3R (ev3-gripp3r) and Robot Inventor custom gripper builds (51515).",
+  "license": "CC-BY-4.0"
+}

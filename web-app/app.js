@@ -65,8 +65,109 @@ const PROFILES = [
       D: { kind: "sensor", part: "distance-sensor", role: "trigger_detection" },
       E: { kind: "sensor", part: "color-sensor", role: "ball_or_line_detection" }
     }
+  },
+  // ── EV3 31313 robots ───────────────────────────────────────────────────────
+  {
+    id: "ev3-ev3rstorm", name: "EV3RSTORM", family: "ev3",
+    kit: "LEGO MINDSTORMS EV3 31313",
+    robotKind: "tracked_drive_shooter",
+    crossGenNotes: "Tank drive (B+C tracks) is equivalent to the tracked_vehicle morphology.",
+    ports: {
+      A: { kind: "motor", part: "medium-motor", role: "blaster_arm" },
+      B: { kind: "motor", part: "large-motor", role: "left_track_drive" },
+      C: { kind: "motor", part: "large-motor", role: "right_track_drive", positiveDirection: "counterclockwise" },
+      "1": { kind: "sensor", part: "infrared-sensor", role: "obstacle_detection" },
+      "4": { kind: "sensor", part: "color-sensor", role: "color_detection" }
+    }
+  },
+  {
+    id: "ev3-gripp3r", name: "GRIPP3R", family: "ev3",
+    kit: "LEGO MINDSTORMS EV3 31313",
+    robotKind: "gripper_drive",
+    crossGenNotes: "Gripper morphology — equivalent to NXT Tribot claw and 51515 custom gripper builds.",
+    ports: {
+      A: { kind: "motor", part: "medium-motor", role: "gripper_claw" },
+      B: { kind: "motor", part: "large-motor", role: "left_drive" },
+      C: { kind: "motor", part: "large-motor", role: "right_drive", positiveDirection: "counterclockwise" },
+      "1": { kind: "sensor", part: "ultrasonic-sensor", role: "obstacle_detection" },
+      "4": { kind: "sensor", part: "gyro-sensor", role: "orientation" }
+    }
+  },
+  // ── NXT robots ─────────────────────────────────────────────────────────────
+  {
+    id: "nxt-alpha-rex", name: "Alpha Rex", family: "nxt",
+    kit: "LEGO MINDSTORMS NXT 2.0 8547",
+    robotKind: "humanoid_biped_walker",
+    crossGenNotes: "Bipedal humanoid walker — thematically related to Robot Inventor Charlie (51515-charlie).",
+    ports: {
+      A: { kind: "motor", part: "nxt-servo-motor", role: "right_leg" },
+      B: { kind: "motor", part: "nxt-servo-motor", role: "left_leg" },
+      C: { kind: "motor", part: "nxt-servo-motor", role: "arm_gesture" },
+      "1": { kind: "sensor", part: "ultrasonic-sensor", role: "obstacle_detection" },
+      "3": { kind: "sensor", part: "touch-sensor", role: "bump_detect" }
+    }
+  },
+  {
+    id: "nxt-tribot", name: "Tribot", family: "nxt",
+    kit: "LEGO MINDSTORMS NXT 1.0 8527",
+    robotKind: "two_wheel_drive_claw",
+    crossGenNotes: "Two-wheel drive with claw — closely equivalent to EV3 GRIPP3R (ev3-gripp3r).",
+    ports: {
+      A: { kind: "motor", part: "nxt-servo-motor", role: "claw" },
+      B: { kind: "motor", part: "nxt-servo-motor", role: "left_drive" },
+      C: { kind: "motor", part: "nxt-servo-motor", role: "right_drive", positiveDirection: "counterclockwise" },
+      "1": { kind: "sensor", part: "ultrasonic-sensor", role: "obstacle_detection" },
+      "2": { kind: "sensor", part: "touch-sensor", role: "bump_detect" },
+      "3": { kind: "sensor", part: "light-sensor", role: "line_following" }
+    }
+  },
+  // ── RCX robots ─────────────────────────────────────────────────────────────
+  {
+    id: "rcx-pushbot", name: "Pushbot", family: "rcx",
+    kit: "LEGO MINDSTORMS RCX 3804 / 9747",
+    robotKind: "two_wheel_drive_pusher",
+    crossGenNotes: "The original 1998 MINDSTORMS brick. Two-wheel drive equivalent to NXT Tribot and EV3 GRIPP3R.",
+    ports: {
+      A: { kind: "motor", part: "rcx-motor", role: "right_drive" },
+      B: { kind: "motor", part: "rcx-motor", role: "arm_or_attachment" },
+      C: { kind: "motor", part: "rcx-motor", role: "left_drive" },
+      "1": { kind: "sensor", part: "touch-sensor", role: "bump_detect" },
+      "2": { kind: "sensor", part: "light-sensor", role: "light_or_line" }
+    }
   }
 ];
+
+// ─── Generation metadata ──────────────────────────────────────────────────────
+
+const GEN_META = {
+  "robot-inventor": { label: "51515", color: "#006A6A", textColor: "#fff", ext: "lms",  extLabel: "Download .lms" },
+  "spike-prime":    { label: "SPIKE", color: "#2980b9", textColor: "#fff", ext: "lms",  extLabel: "Download .lms" },
+  "ev3":            { label: "EV3",   color: "#c0392b", textColor: "#fff", ext: "py",   extLabel: "Download .py"  },
+  "nxt":            { label: "NXT",   color: "#d97706", textColor: "#fff", ext: "py",   extLabel: "Download .py"  },
+  "rcx":            { label: "RCX",   color: "#6b7280", textColor: "#fff", ext: "nqc",  extLabel: "Download .nqc" }
+};
+
+// Valid code targets per MINDSTORMS generation
+const FAMILY_TARGETS = {
+  "robot-inventor": [
+    { value: "lego-stock-python", label: "LEGO MINDSTORMS App (Python)" },
+    { value: "pybricks-python",   label: "Pybricks (Python)" }
+  ],
+  "spike-prime": [
+    { value: "lego-stock-python", label: "LEGO SPIKE App (Python)" },
+    { value: "pybricks-python",   label: "Pybricks (Python)" }
+  ],
+  "ev3": [
+    { value: "pybricks-ev3",   label: "Pybricks EV3 (Python)" },
+    { value: "ev3dev-python",  label: "ev3dev MicroPython" }
+  ],
+  "nxt": [
+    { value: "nxt-python", label: "nxt-python (USB / Bluetooth)" }
+  ],
+  "rcx": [
+    { value: "rcx-nqc", label: "NQC — Not Quite C" }
+  ]
+};
 
 // ─── Code generation (browser-side mirror of server.js logic) ─────────────────
 
@@ -237,7 +338,343 @@ function generateLegoStockCode(profile, intent, customCode) {
 
 function generateCode(profile, target, intent, customCode) {
   if (target === "pybricks-python") return generatePybricksCode(profile, intent, customCode);
+  if (target === "pybricks-ev3")    return generatePybricksEv3Code(profile, intent, customCode);
+  if (target === "ev3dev-python")   return generateEv3devCode(profile, intent, customCode);
+  if (target === "nxt-python")      return generateNxtPythonCode(profile, intent, customCode);
+  if (target === "rcx-nqc")         return generateRcxNqcCode(profile, intent, customCode);
   return generateLegoStockCode(profile, intent, customCode);
+}
+
+// ─── EV3 Pybricks code generation ─────────────────────────────────────────────
+
+function generatePybricksEv3Code(profile, intent, customCode) {
+  const ports = profile.ports || {};
+  const motorEntries = Object.entries(ports).filter(([, p]) => p.kind === "motor");
+  const sensorEntries = Object.entries(ports).filter(([, p]) => p.kind === "sensor");
+  const sensorImports = new Set();
+  for (const [, p] of sensorEntries) {
+    if (p.part === "color-sensor")         sensorImports.add("ColorSensor");
+    else if (p.part === "ultrasonic-sensor") sensorImports.add("UltrasonicSensor");
+    else if (p.part === "touch-sensor")    sensorImports.add("TouchSensor");
+    else if (p.part === "infrared-sensor") sensorImports.add("InfraredSensor");
+    else if (p.part === "gyro-sensor")     sensorImports.add("GyroSensor");
+  }
+  const sensorLine = sensorImports.size ? `, ${[...sensorImports].join(", ")}` : "";
+  const L = [
+    `# ${profile.name} — ${profile.kit || "LEGO MINDSTORMS EV3 31313"}`,
+    `# Target: pybricks-ev3  |  Flash firmware: https://code.pybricks.com`,
+    `# Generated by Mindstorms Robot Creator`,
+    ``,
+    `from pybricks.hubs import EV3Brick`,
+    `from pybricks.ev3devices import Motor${sensorLine}`,
+    `from pybricks.parameters import Port, Direction, Color, Stop, Button`,
+    `from pybricks.tools import wait, StopWatch`,
+    ``,
+    `SAFE_SPEED = 200   # deg/s`,
+    `SAFE_ANGLE = 360`,
+    `WAIT_MS    = 500`,
+    ``,
+    `ev3 = EV3Brick()`,
+    ``
+  ];
+  if (motorEntries.length) {
+    L.push("# Motor bindings from profile");
+    for (const [port, p] of motorEntries) {
+      const dir = p.positiveDirection === "counterclockwise"
+        ? `, positive_direction=Direction.COUNTERCLOCKWISE` : "";
+      L.push(`${toVarName(p.role)} = Motor(Port.${port}${dir})  # ${p.role}`);
+    }
+    L.push("");
+  }
+  if (sensorEntries.length) {
+    L.push("# Sensor bindings from profile  (EV3 sensor ports: S1–S4)");
+    for (const [port, p] of sensorEntries) {
+      const v = toVarName(p.role); const sp = `Port.S${port}`;
+      if (p.part === "color-sensor")         L.push(`${v} = ColorSensor(${sp})  # ${p.role}`);
+      else if (p.part === "ultrasonic-sensor") L.push(`${v} = UltrasonicSensor(${sp})  # ${p.role}`);
+      else if (p.part === "touch-sensor")    L.push(`${v} = TouchSensor(${sp})  # ${p.role}`);
+      else if (p.part === "infrared-sensor") L.push(`${v} = InfraredSensor(${sp})  # ${p.role}`);
+      else if (p.part === "gyro-sensor")     L.push(`${v} = GyroSensor(${sp})  # ${p.role}`);
+    }
+    L.push("");
+  }
+  L.push("# Program");
+  if (intent === "beep_hello") {
+    L.push(`ev3.speaker.beep(frequency=500, duration=500)`, `ev3.light.on(Color.GREEN)`, `wait(1000)`, `ev3.light.off()`);
+  } else if (intent === "safe_probe") {
+    L.push(`ev3.light.on(Color.YELLOW)`);
+    for (const [port, p] of motorEntries) {
+      L.push(`print("Testing ${p.role} (Port ${port})")`,
+        `${toVarName(p.role)}.run_angle(SAFE_SPEED, SAFE_ANGLE)`, `wait(WAIT_MS)`,
+        `${toVarName(p.role)}.run_angle(SAFE_SPEED, -SAFE_ANGLE)`, `wait(WAIT_MS)`);
+    }
+    L.push(`ev3.light.on(Color.GREEN)`, `ev3.speaker.beep(frequency=800, duration=200)`, `print("Probe complete")`);
+  } else if (intent === "drive_forward") {
+    const drives = motorEntries.filter(([, p]) => /drive|track|wheel/.test(p.role));
+    if (drives.length >= 2) {
+      L.push(`# Drive forward 1 second`);
+      drives.forEach(([, p]) => L.push(`${toVarName(p.role)}.run(SAFE_SPEED)`));
+      L.push(`wait(1000)`);
+      drives.forEach(([, p]) => L.push(`${toVarName(p.role)}.stop()`));
+    } else if (drives.length === 1) {
+      L.push(`${toVarName(drives[0][1].role)}.run_angle(SAFE_SPEED, SAFE_ANGLE)`);
+    } else { L.push(`# No drive motors found`); }
+  } else if (intent === "wave") {
+    const arms = motorEntries.filter(([, p]) => /arm|lift|wave|blaster|claw|grip|gesture/.test(p.role));
+    if (arms.length) {
+      const v = toVarName(arms[0][1].role);
+      L.push(`for _ in range(3):`, `    ${v}.run_angle(SAFE_SPEED, 90)`, `    wait(200)`,
+        `    ${v}.run_angle(SAFE_SPEED, -90)`, `    wait(200)`);
+    } else { L.push(`ev3.speaker.beep()  # No arm motor`); }
+  } else if (intent === "custom" && customCode) { L.push(String(customCode));
+  } else { L.push(`ev3.speaker.beep()`, `wait(500)`); }
+  return L.join("\n") + "\n";
+}
+
+// ─── EV3 ev3dev2 MicroPython code generation ──────────────────────────────────
+
+function generateEv3devCode(profile, intent, customCode) {
+  const ports = profile.ports || {};
+  const motorEntries = Object.entries(ports).filter(([, p]) => p.kind === "motor");
+  const sensorEntries = Object.entries(ports).filter(([, p]) => p.kind === "sensor");
+  const motorOutputs = motorEntries.map(([port]) => `OUTPUT_${port}`);
+  const sensorInputs = sensorEntries.map(([port]) => `INPUT_${port}`);
+  const sensorImports = new Set();
+  for (const [, p] of sensorEntries) {
+    if (p.part === "color-sensor")         sensorImports.add("ColorSensor");
+    else if (p.part === "ultrasonic-sensor") sensorImports.add("UltrasonicSensor");
+    else if (p.part === "touch-sensor")    sensorImports.add("TouchSensor");
+    else if (p.part === "infrared-sensor") sensorImports.add("InfraredSensor");
+    else if (p.part === "gyro-sensor")     sensorImports.add("GyroSensor");
+  }
+  const L = [
+    `#!/usr/bin/env python3`,
+    `# ${profile.name} — ${profile.kit || "LEGO MINDSTORMS EV3 31313"}`,
+    `# Target: ev3dev MicroPython  |  https://ev3dev.org`,
+    `# Generated by Mindstorms Robot Creator`,
+    ``,
+    `from ev3dev2.motor import LargeMotor, MediumMotor, SpeedPercent${motorOutputs.length ? `, ${motorOutputs.join(", ")}` : ""}`,
+    `from ev3dev2.sensor import ${sensorInputs.length ? sensorInputs.join(", ") : "INPUT_1"}`,
+    `from ev3dev2.sensor.lego import ${[...sensorImports].join(", ") || "TouchSensor"}`,
+    `from ev3dev2.led import Leds`,
+    `from ev3dev2.sound import Sound`,
+    `from time import sleep`,
+    ``,
+    `sound = Sound()`,
+    `leds  = Leds()`,
+    `SAFE_SPEED = SpeedPercent(30)`,
+    `WAIT_SECS  = 0.5`,
+    ``
+  ];
+  if (motorEntries.length) {
+    L.push("# Motor bindings from profile");
+    for (const [port, p] of motorEntries) {
+      const cls = p.part === "medium-motor" ? "MediumMotor" : "LargeMotor";
+      L.push(`${toVarName(p.role)} = ${cls}(OUTPUT_${port})  # ${p.role}`);
+    }
+    L.push("");
+  }
+  if (sensorEntries.length) {
+    L.push("# Sensor bindings from profile");
+    for (const [port, p] of sensorEntries) {
+      const v = toVarName(p.role);
+      if (p.part === "color-sensor")         L.push(`${v} = ColorSensor(INPUT_${port})  # ${p.role}`);
+      else if (p.part === "ultrasonic-sensor") L.push(`${v} = UltrasonicSensor(INPUT_${port})  # ${p.role}`);
+      else if (p.part === "touch-sensor")    L.push(`${v} = TouchSensor(INPUT_${port})  # ${p.role}`);
+      else if (p.part === "infrared-sensor") L.push(`${v} = InfraredSensor(INPUT_${port})  # ${p.role}`);
+    }
+    L.push("");
+  }
+  L.push("# Program");
+  if (intent === "beep_hello") {
+    L.push(`sound.beep()`, `leds.set_color("LEFT", "GREEN")`, `leds.set_color("RIGHT", "GREEN")`, `sleep(1)`);
+  } else if (intent === "safe_probe") {
+    for (const [port, p] of motorEntries) {
+      L.push(`print("Testing ${p.role} (OUTPUT_${port})")`,
+        `${toVarName(p.role)}.on_for_seconds(SAFE_SPEED, 1)`, `sleep(WAIT_SECS)`,
+        `${toVarName(p.role)}.on_for_seconds(-SAFE_SPEED, 1)`, `sleep(WAIT_SECS)`);
+    }
+    L.push(`sound.beep()`, `print("Probe complete")`);
+  } else if (intent === "drive_forward") {
+    const drives = motorEntries.filter(([, p]) => /drive|track|wheel/.test(p.role));
+    if (drives.length >= 2) {
+      L.push(`# Drive forward 1 second`);
+      drives.forEach(([, p]) => L.push(`${toVarName(p.role)}.on(SAFE_SPEED)`));
+      L.push(`sleep(1)`);
+      drives.forEach(([, p]) => L.push(`${toVarName(p.role)}.off()`));
+    } else if (drives.length === 1) {
+      L.push(`${toVarName(drives[0][1].role)}.on_for_seconds(SAFE_SPEED, 1)`);
+    } else { L.push(`# No drive motors found`); }
+  } else if (intent === "wave") {
+    const arms = motorEntries.filter(([, p]) => /arm|lift|wave|blaster|claw|grip|gesture/.test(p.role));
+    if (arms.length) {
+      const v = toVarName(arms[0][1].role);
+      L.push(`for _ in range(3):`, `    ${v}.on_for_degrees(SAFE_SPEED, 90)`, `    sleep(0.2)`,
+        `    ${v}.on_for_degrees(-SAFE_SPEED, 90)`, `    sleep(0.2)`);
+    } else { L.push(`sound.beep()  # No arm motor`); }
+  } else if (intent === "custom" && customCode) { L.push(String(customCode));
+  } else { L.push(`sound.beep()`); }
+  return L.join("\n") + "\n";
+}
+
+// ─── NXT Python code generation ───────────────────────────────────────────────
+
+function generateNxtPythonCode(profile, intent, customCode) {
+  const ports = profile.ports || {};
+  const motorEntries = Object.entries(ports).filter(([, p]) => p.kind === "motor");
+  const sensorEntries = Object.entries(ports).filter(([, p]) => p.kind === "sensor");
+  const sensorImports = new Set();
+  for (const [, p] of sensorEntries) {
+    if (p.part === "ultrasonic-sensor") sensorImports.add("Ultrasonic");
+    else if (p.part === "touch-sensor") sensorImports.add("Touch");
+    else if (p.part === "light-sensor") sensorImports.add("Light");
+    else if (p.part === "color-sensor") sensorImports.add("Color20");
+  }
+  const L = [
+    `# ${profile.name} — ${profile.kit || "LEGO MINDSTORMS NXT"}`,
+    `# Target: nxt-python  |  Install: pip install nxt-python`,
+    `# Generated by Mindstorms Robot Creator`,
+    `# Connect NXT brick via USB or pair via Bluetooth before running.`,
+    ``,
+    `import nxt.locator`,
+    `from nxt.motor import Motor, Port as MotorPort`,
+    `from nxt.sensor import PORT_1, PORT_2, PORT_3, PORT_4`,
+    ...(sensorImports.size ? [`from nxt.sensor import ${[...sensorImports].join(", ")}`] : []),
+    `import time`,
+    ``,
+    `brick = nxt.locator.find()`,
+    ``,
+    `SAFE_POWER = 60   # 0-127`,
+    `WAIT_SECS  = 0.5`,
+    ``
+  ];
+  if (motorEntries.length) {
+    L.push("# Motor bindings from profile");
+    for (const [port, p] of motorEntries)
+      L.push(`${toVarName(p.role)} = Motor(brick, MotorPort.${port})  # ${p.role}`);
+    L.push("");
+  }
+  if (sensorEntries.length) {
+    L.push("# Sensor bindings from profile");
+    for (const [port, p] of sensorEntries) {
+      const v = toVarName(p.role); const c = `PORT_${port}`;
+      if (p.part === "ultrasonic-sensor") L.push(`${v} = Ultrasonic(brick, ${c})  # ${p.role}`);
+      else if (p.part === "touch-sensor") L.push(`${v} = Touch(brick, ${c})  # ${p.role}`);
+      else if (p.part === "light-sensor") L.push(`${v} = Light(brick, ${c})  # ${p.role}`);
+      else if (p.part === "color-sensor") L.push(`${v} = Color20(brick, ${c})  # ${p.role}`);
+    }
+    L.push("");
+  }
+  L.push("# Program");
+  if (intent === "beep_hello") {
+    L.push(`brick.play_tone_and_wait(440, 500)  # Beep hello`);
+  } else if (intent === "safe_probe") {
+    for (const [port, p] of motorEntries) {
+      L.push(`print("Testing ${p.role} (Port ${port})")`,
+        `${toVarName(p.role)}.run(SAFE_POWER)`, `time.sleep(1)`,
+        `${toVarName(p.role)}.run(-SAFE_POWER)`, `time.sleep(1)`,
+        `${toVarName(p.role)}.idle()`, `time.sleep(WAIT_SECS)`);
+    }
+    L.push(`brick.play_tone_and_wait(700, 300)`, `print("Probe complete")`);
+  } else if (intent === "drive_forward") {
+    const drives = motorEntries.filter(([, p]) => /drive|wheel|track/.test(p.role));
+    if (drives.length >= 2) {
+      L.push(`# Drive forward 1 second`);
+      drives.forEach(([, p]) => L.push(`${toVarName(p.role)}.run(SAFE_POWER)`));
+      L.push(`time.sleep(1)`);
+      drives.forEach(([, p]) => L.push(`${toVarName(p.role)}.idle()`));
+    } else if (drives.length === 1) {
+      L.push(`${toVarName(drives[0][1].role)}.run(SAFE_POWER)`, `time.sleep(1)`,
+        `${toVarName(drives[0][1].role)}.idle()`);
+    } else { L.push(`# No drive motors found`); }
+  } else if (intent === "wave") {
+    const arms = motorEntries.filter(([, p]) => /arm|leg|lift|wave|claw|grip|gesture/.test(p.role));
+    if (arms.length) {
+      const v = toVarName(arms[0][1].role);
+      L.push(`for _ in range(3):`, `    ${v}.run(SAFE_POWER)`, `    time.sleep(0.3)`,
+        `    ${v}.run(-SAFE_POWER)`, `    time.sleep(0.3)`, `    ${v}.idle()`, `    time.sleep(0.2)`);
+    } else { L.push(`brick.play_tone_and_wait(440, 200)  # No arm motor`); }
+  } else if (intent === "custom" && customCode) { L.push(String(customCode));
+  } else { L.push(`brick.play_tone_and_wait(440, 300)`); }
+  return L.join("\n") + "\n";
+}
+
+// ─── RCX NQC (Not Quite C) code generation ────────────────────────────────────
+
+function generateRcxNqcCode(profile, intent, customCode) {
+  const ports = profile.ports || {};
+  const motorEntries = Object.entries(ports).filter(([, p]) => p.kind === "motor");
+  const sensorEntries = Object.entries(ports).filter(([, p]) => p.kind === "sensor");
+  const L = [
+    `// ${profile.name} — ${profile.kit || "LEGO MINDSTORMS RCX"}`,
+    `// Target: NQC (Not Quite C)  |  https://bricxcc.sourceforge.net/nqc/`,
+    `// Generated by Mindstorms Robot Creator`,
+    `// Compile:  nqcc program.nqc`,
+    `// Download: nqc -download program.rcx   (requires IR tower)`,
+    ``
+  ];
+  if (motorEntries.length) {
+    L.push("// Motor port definitions");
+    for (const [port, p] of motorEntries)
+      L.push(`#define ${toVarName(p.role).toUpperCase().padEnd(20)} OUT_${port}  // ${p.role}`);
+    L.push("");
+  }
+  if (sensorEntries.length) {
+    L.push("// Sensor port definitions");
+    for (const [port, p] of sensorEntries)
+      L.push(`#define ${toVarName(p.role).toUpperCase().padEnd(20)} SENSOR_${port}  // ${p.role}`);
+    L.push("");
+  }
+  L.push("#define SAFE_POWER  60  // 0-100");
+  L.push("");
+  L.push("task main()");
+  L.push("{");
+  if (sensorEntries.length) {
+    L.push("    // Sensor type setup");
+    for (const [port, p] of sensorEntries) {
+      if (p.part === "touch-sensor")  L.push(`    SetSensor(SENSOR_${port}, SENSOR_TOUCH);`);
+      else if (p.part === "light-sensor") L.push(`    SetSensor(SENSOR_${port}, SENSOR_LIGHT);`);
+    }
+    L.push("");
+  }
+  if (intent === "beep_hello") {
+    L.push(`    PlayTone(440, 3);  // Beep hello`, `    Wait(30);`);
+  } else if (intent === "safe_probe") {
+    for (const [port, p] of motorEntries) {
+      L.push(`    // Testing ${p.role} (OUT_${port})`,
+        `    SetOutput(OUT_${port}, OUT_ON);`, `    SetPower(OUT_${port}, SAFE_POWER);`, `    Wait(10);`,
+        `    SetOutput(OUT_${port}, OUT_OFF);`, `    Wait(5);`,
+        `    SetDirection(OUT_${port}, OUT_REV);`, `    SetOutput(OUT_${port}, OUT_ON);`, `    Wait(10);`,
+        `    SetOutput(OUT_${port}, OUT_OFF);`, `    SetDirection(OUT_${port}, OUT_FWD);`, `    Wait(5);`);
+    }
+    L.push(`    PlayTone(700, 3);`, `    Wait(30);`);
+  } else if (intent === "drive_forward") {
+    const drives = motorEntries.filter(([, p]) => /drive|wheel|track/.test(p.role));
+    if (drives.length >= 2) {
+      const mask = drives.map(([port]) => `OUT_${port}`).join(" | ");
+      L.push(`    SetOutput(${mask}, OUT_ON);`, `    SetPower(${mask}, SAFE_POWER);`,
+        `    Wait(20);  // ~2 seconds`, `    SetOutput(${mask}, OUT_OFF);`);
+    } else if (drives.length === 1) {
+      const [port] = drives[0];
+      L.push(`    SetOutput(OUT_${port}, OUT_ON);`, `    SetPower(OUT_${port}, SAFE_POWER);`,
+        `    Wait(20);`, `    SetOutput(OUT_${port}, OUT_OFF);`);
+    } else { L.push(`    // No drive motors found`); }
+  } else if (intent === "wave") {
+    const arms = motorEntries.filter(([, p]) => /arm|lift|wave|claw|grip/.test(p.role));
+    if (arms.length) {
+      const [port] = arms[0];
+      L.push(`    int i;`, `    for (i = 0; i < 3; i++)`, `    {`,
+        `        SetOutput(OUT_${port}, OUT_ON);`, `        SetPower(OUT_${port}, SAFE_POWER);`, `        Wait(3);`,
+        `        SetOutput(OUT_${port}, OUT_OFF);`, `        SetDirection(OUT_${port}, OUT_REV);`,
+        `        SetOutput(OUT_${port}, OUT_ON);`, `        Wait(3);`,
+        `        SetOutput(OUT_${port}, OUT_OFF);`, `        SetDirection(OUT_${port}, OUT_FWD);`, `        Wait(2);`,
+        `    }`);
+    } else { L.push(`    PlayTone(440, 3);  // No arm motor`, `    Wait(30);`); }
+  } else if (intent === "custom" && customCode) {
+    L.push(String(customCode).split("\n").map(l => `    ${l}`).join("\n"));
+  } else { L.push(`    PlayTone(440, 3);`, `    Wait(30);`); }
+  L.push("}");
+  return L.join("\n") + "\n";
 }
 
 // ─── LMS file builder (browser, uses JSZip) ───────────────────────────────────
@@ -508,7 +945,8 @@ const state = {
   selectedId: PROFILES[0].id,
   serverUrl: "http://127.0.0.1:3095",
   serverOk: false,
-  sessionId: null
+  sessionId: null,
+  genFilter: "all"
 };
 
 function selectedProfile() {
@@ -544,22 +982,70 @@ async function checkServer() {
   }
 }
 
+// ─── Generation filter ────────────────────────────────────────────────────────
+
+function renderGenFilter() {
+  const wrap = el("genFilter");
+  if (!wrap) return;
+  // Collect unique families present in profiles
+  const families = ["all", ...new Set(state.profiles.map(p => p.family).filter(Boolean))];
+  wrap.innerHTML = "";
+  for (const fam of families) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "gen-chip" + (state.genFilter === fam ? " active" : "");
+    btn.dataset.gen = fam;
+    if (fam === "all") {
+      btn.textContent = "All";
+    } else {
+      const meta = GEN_META[fam];
+      btn.textContent = meta ? meta.label : fam.toUpperCase();
+      if (meta) {
+        btn.style.setProperty("--gen-color", meta.color);
+        btn.style.setProperty("--gen-text", meta.textColor);
+      }
+    }
+    btn.addEventListener("click", () => {
+      state.genFilter = fam;
+      renderGenFilter();
+      renderFleet();
+    });
+    wrap.appendChild(btn);
+  }
+}
+
 // ─── Fleet ────────────────────────────────────────────────────────────────────
 
 function renderFleet() {
   const list = el("fleetList");
   list.innerHTML = "";
-  for (const p of state.profiles) {
+  const visible = state.genFilter === "all"
+    ? state.profiles
+    : state.profiles.filter(p => p.family === state.genFilter);
+  for (const p of visible) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "fleet-robot" + (p.id === state.selectedId ? " selected" : "");
-    const motorCount = Object.values(p.ports || {}).filter(x => x.kind === "motor").length;
+    const motorCount  = Object.values(p.ports || {}).filter(x => x.kind === "motor").length;
     const sensorCount = Object.values(p.ports || {}).filter(x => x.kind === "sensor").length;
-    btn.innerHTML = `<strong>${p.name}</strong>
+    const meta = GEN_META[p.family] || {};
+    const genBadge = meta.label
+      ? `<span class="fleet-gen-badge" style="background:${meta.color};color:${meta.textColor}">${meta.label}</span>`
+      : "";
+    const crossNote = p.crossGenNotes
+      ? `<span class="fleet-cross-note" title="${p.crossGenNotes}">↔ cross-gen</span>` : "";
+    btn.innerHTML = `<div class="fleet-robot-header"><strong>${p.name}</strong>${genBadge}</div>
       <span class="fleet-kind">${(p.robotKind || "").replace(/_/g, " ")}</span>
-      <span class="fleet-meta">${motorCount}M ${sensorCount}S${p.needsConfirmation ? " ⚠" : ""}</span>`;
+      <span class="fleet-meta">${motorCount}M ${sensorCount}S${p.needsConfirmation ? " ⚠" : ""}${crossNote}</span>`;
     btn.addEventListener("click", () => selectProfile(p.id));
     list.appendChild(btn);
+  }
+  // If selected profile is hidden by filter, show a note
+  if (visible.length === 0) {
+    const note = document.createElement("p");
+    note.className = "fleet-empty-note";
+    note.textContent = "No robots in this generation.";
+    list.appendChild(note);
   }
 }
 
@@ -568,6 +1054,43 @@ function selectProfile(id) {
   const p = selectedProfile();
   renderFleet();
   el("codeRobotName").textContent = p ? p.name : "none";
+  updateTargetSelector(p ? p.family : "robot-inventor");
+  // Show cross-gen note if available
+  const noteEl = el("crossGenNote");
+  if (noteEl) {
+    noteEl.textContent = p && p.crossGenNotes ? `↔ ${p.crossGenNotes}` : "";
+    noteEl.style.display = p && p.crossGenNotes ? "block" : "none";
+  }
+}
+
+function updateTargetSelector(family) {
+  const sel = el("targetSel");
+  if (!sel) return;
+  const targets = FAMILY_TARGETS[family] || FAMILY_TARGETS["robot-inventor"];
+  sel.innerHTML = targets.map(t => `<option value="${t.value}">${t.label}</option>`).join("");
+
+  // Update download button label
+  const meta = GEN_META[family] || GEN_META["robot-inventor"];
+  const dlBtn = el("downloadLmsBtn");
+  if (dlBtn) dlBtn.textContent = `↓ ${meta.extLabel}`;
+
+  // Disable Save-to-server (.lms) for non-51515 families
+  const saveBtn = el("saveLmsBtn");
+  if (saveBtn) {
+    const isLms = meta.ext === "lms";
+    saveBtn.disabled = !isLms;
+    saveBtn.title = isLms ? "" : "Save to server only supported for Robot Inventor / SPIKE (51515)";
+  }
+
+  // Show/hide connect-tab note about non-BLE generations
+  const connNote = el("nonBleGenNote");
+  if (connNote) {
+    const isBle = (family === "robot-inventor" || family === "spike-prime");
+    connNote.style.display = isBle ? "none" : "block";
+    connNote.textContent = isBle ? "" :
+      `Note: ${(meta.label || family.toUpperCase())} hubs use USB or legacy Bluetooth (not Web Bluetooth). ` +
+      `Generate and Download code here, then deploy with the appropriate desktop tool.`;
+  }
 }
 
 // ─── Code tab ─────────────────────────────────────────────────────────────────
@@ -627,11 +1150,25 @@ async function doDownloadLms() {
   const profile = selectedProfile();
   const src = editor.getValue().trim();
   if (!src) { setCodeStatus("Generate or write code first", true); return; }
-  const name = profile
+  const family  = profile ? profile.family : "robot-inventor";
+  const meta    = GEN_META[family] || GEN_META["robot-inventor"];
+  const baseName = profile
     ? `${profile.id}-${el("intentSel").value}`.replace(/[^a-z0-9_-]/g, "-")
     : "program";
-  await downloadLms(name, src);
-  setCodeStatus(`Downloaded ${name}.lms — open it in the LEGO MINDSTORMS app`);
+
+  if (meta.ext === "lms") {
+    await downloadLms(baseName, src);
+    setCodeStatus(`Downloaded ${baseName}.lms — open it in the LEGO MINDSTORMS app`);
+  } else {
+    // Plain text download (.py or .nqc)
+    const filename = `${baseName}.${meta.ext}`;
+    const blob = new Blob([src], { type: "text/plain" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    setCodeStatus(`Downloaded ${filename}`);
+  }
 }
 
 async function doSaveToServer() {
@@ -896,6 +1433,7 @@ function el(id) { return document.getElementById(id); }
 
 document.addEventListener("DOMContentLoaded", () => {
   initEditor();
+  renderGenFilter();
   renderFleet();
   selectProfile(state.profiles[0].id);
 

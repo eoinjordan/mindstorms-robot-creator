@@ -1,0 +1,35 @@
+{
+  "id": "rcx-pushbot",
+  "name": "Pushbot",
+  "family": "rcx",
+  "kit": "LEGO MINDSTORMS RCX 3804 / 9747",
+  "robotKind": "two_wheel_drive_pusher",
+  "source": {
+    "portMap": "original-rcx-creator-building-set",
+    "notes": "Original MINDSTORMS (1998) two-motor differential drive. Reference port map from the official Creator building set."
+  },
+  "controller": {
+    "model": "RCX Brick 3804",
+    "firmware": "standard-rcx-2.0",
+    "connection": ["infrared-tower"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "rcx-motor", "role": "right_drive" },
+    "B": { "kind": "motor", "part": "rcx-motor", "role": "arm_or_attachment" },
+    "C": { "kind": "motor", "part": "rcx-motor", "role": "left_drive" },
+    "1": { "kind": "sensor", "part": "touch-sensor", "role": "bump_detect" },
+    "2": { "kind": "sensor", "part": "light-sensor", "role": "light_or_line" }
+  },
+  "sensors": [
+    { "kind": "touch", "source": "SENSOR_1" },
+    { "kind": "light", "source": "SENSOR_2" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C"],
+    "features": ["drive_pair", "arm_motor", "touch_sensor", "light_sensor"]
+  },
+  "programTargets": ["rcx-nqc"],
+  "crossGenNotes": "The original 1998 MINDSTORMS programmable brick. Two-wheel drive equivalent to NXT Tribot (nxt-tribot) and EV3 GRIPP3R (ev3-gripp3r). RCX motors are simpler — no rotation sensor.",
+  "license": "CC-BY-4.0"
+}

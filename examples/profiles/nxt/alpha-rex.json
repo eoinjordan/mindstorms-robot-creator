@@ -1,0 +1,35 @@
+{
+  "id": "nxt-alpha-rex",
+  "name": "Alpha Rex",
+  "family": "nxt",
+  "kit": "LEGO MINDSTORMS NXT 2.0 8547",
+  "robotKind": "humanoid_biped_walker",
+  "source": {
+    "portMap": "official-build-instructions",
+    "url": "https://www.lego.com/en-us/themes/mindstorms/products/nxt-2-0-8547"
+  },
+  "controller": {
+    "model": "NXT Brick 8547",
+    "firmware": "standard-nxt-or-lejos",
+    "connection": ["usb", "bluetooth"]
+  },
+  "ports": {
+    "A": { "kind": "motor", "part": "nxt-servo-motor", "role": "right_leg" },
+    "B": { "kind": "motor", "part": "nxt-servo-motor", "role": "left_leg" },
+    "C": { "kind": "motor", "part": "nxt-servo-motor", "role": "arm_gesture" },
+    "1": { "kind": "sensor", "part": "ultrasonic-sensor", "role": "obstacle_detection" },
+    "3": { "kind": "sensor", "part": "touch-sensor", "role": "bump_detect" }
+  },
+  "sensors": [
+    { "kind": "ultrasonic", "source": "PORT_1" },
+    { "kind": "touch", "source": "PORT_3" }
+  ],
+  "probeSignature": {
+    "version": 1,
+    "expectedActivePorts": ["A", "B", "C"],
+    "features": ["biped_pair", "arm_motor", "ultrasonic_sensor", "touch_sensor"]
+  },
+  "programTargets": ["nxt-python"],
+  "crossGenNotes": "Bipedal humanoid walker — thematically related to Robot Inventor Charlie (51515-charlie). Biped gait via two-motor leg pair.",
+  "license": "CC-BY-4.0"
+}

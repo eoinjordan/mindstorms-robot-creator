@@ -66,6 +66,7 @@
     <!-- Fleet sidebar -->
     <aside class="fleet-sidebar">
       <div class="sidebar-header">Fleet</div>
+      <div id="genFilter" class="gen-filter"></div>
       <div id="fleetList" class="fleet-list"></div>
       <button id="loadServerBtn" type="button" class="btn-secondary sidebar-footer-btn">Load from server</button>
     </aside>
@@ -86,10 +87,7 @@
             <span id="codeRobotName" class="robot-pill">none selected</span>
           </label>
           <label class="inline-label">Target
-            <select id="targetSel">
-              <option value="lego-stock-python">LEGO Stock Python</option>
-              <option value="pybricks-python">Pybricks Python</option>
-            </select>
+            <select id="targetSel"></select>
           </label>
           <label class="inline-label">Intent
             <select id="intentSel">
@@ -110,6 +108,7 @@
 # Select a robot and click Generate
 </textarea>
         </div>
+        <div id="crossGenNote" class="cross-gen-note" style="display:none"></div>
         <div id="codeStatus" class="status-bar"></div>
       </section>
 
@@ -148,6 +147,9 @@
 
       <!-- ── Connect tab ── -->
       <section id="tab-connect" class="tab-panel hidden" role="tabpanel">
+
+        <!-- Non-BLE generation note -->
+        <div id="nonBleGenNote" class="gen-connect-note" style="display:none"></div>
 
         <!-- ── Bluetooth (recommended) ── -->
         <div class="connect-section">
