@@ -127,11 +127,8 @@ jobs:
         run: npm run electron:build:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Code-signing: set these secrets in repo settings to notarize
-          # CSC_LINK: ${{ secrets.MAC_CERTS }}
-          # CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # Disable auto code-signing (no cert secrets configured)
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
@@ -237,7 +234,7 @@ jobs:
   # Requires NPM_TOKEN secret set in repo Settings → Secrets.
   publish-npm:
     name: Publish to npm
-    needs: [build-windows, build-mac, build-linux]
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
