@@ -54,7 +54,8 @@ module.exports = {
     installerHeader: undefined,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
-    shortcutName: "Mindstorms Robot Creator"
+    shortcutName: "Mindstorms Robot Creator",
+    artifactName: "${name}-setup.${ext}"
   },
 
   // ── macOS ─────────────────────────────────────────────────────────────────────
