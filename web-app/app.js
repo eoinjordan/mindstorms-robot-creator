@@ -403,6 +403,7 @@ function mindstormsHint(cm) {
 const llm = { url: "", model: "", backend: "" };
 let ghostMark = null;
 let pendingCompletion = "";
+let _ghosting = false; // flag so change listener ignores our own inserts
 
 function showGhostText(text) {
   clearGhostText();
@@ -410,22 +411,35 @@ function showGhostText(text) {
   const line = text.split("\n")[0];
   if (!line.trim()) return;
   const cur = editor.getCursor();
-  const span = document.createElement("span");
-  span.className = "cm-ghost-text";
-  span.textContent = line;
-  ghostMark = editor.setBookmark(cur, { widget: span, insertLeft: false });
+  _ghosting = true;
+  editor.replaceRange(line, cur, cur, "+ghost");
+  _ghosting = false;
+  const end = { line: cur.line, ch: cur.ch + line.length };
+  ghostMark = editor.markText(cur, end, { className: "cm-ghost-text", atomic: false, readOnly: false });
+  editor.setCursor(cur); // keep cursor before ghost text
   pendingCompletion = line;
 }
 
 function clearGhostText() {
-  if (ghostMark) { ghostMark.clear(); ghostMark = null; }
+  if (!ghostMark) return;
+  const range = ghostMark.find();
+  ghostMark.clear();
+  ghostMark = null;
+  if (range) {
+    _ghosting = true;
+    editor.replaceRange("", range.from, range.to, "+ghost");
+    _ghosting = false;
+  }
   pendingCompletion = "";
 }
 
 function acceptGhostText() {
-  if (!pendingCompletion) return false;
-  editor.replaceRange(pendingCompletion, editor.getCursor());
-  clearGhostText();
+  if (!pendingCompletion || !ghostMark) return false;
+  const range = ghostMark.find();
+  ghostMark.clear();
+  ghostMark = null;
+  if (range) editor.setCursor(range.to); // move cursor past accepted text
+  pendingCompletion = "";
   return true;
 }
 
@@ -443,11 +457,15 @@ async function detectLlm() {
     if (r.ok) {
       const data = await r.json();
       llm.url = base; llm.backend = "ollama";
-      llm.model = modelInput?.value?.trim() || "codellama:7b";
-      const names = (data.models || []).map(m => m.name).join(", ");
+      const models = (data.models || []).map(m => m.name);
+      // Use model from input if it exists in the list; otherwise use first available
+      const typed = modelInput?.value?.trim();
+      const matched = models.find(n => n.toLowerCase().startsWith((typed || "").toLowerCase())) || models[0] || typed;
+      llm.model = matched || typed || "qwen2.5-coder:7b";
+      if (modelInput) modelInput.value = llm.model;
       pill.textContent = `\u25cf Ollama (${llm.model})`;
       pill.className = "pill pill-on";
-      setCodeStatus(`AI ready: Ollama at ${base}. Available: ${names || "(none)"}`);
+      setCodeStatus(`AI ready: Ollama. Available: ${models.join(", ") || "(none)"}`);
       return;
     }
   } catch {}
@@ -518,27 +536,82 @@ function loadBlocklyScripts() {
 }
 
 const MS_BLOCKLY_BLOCKS = [
+  // ── Hub ──────────────────────────────────────────────────────────────────
   {
     "type": "ms_beep",
-    "message0": "hub beep  frequency %1 Hz  duration %2 ms",
+    "message0": "hub beep  freq %1 Hz  dur %2 ms",
     "args0": [
       { "type": "field_number", "name": "FREQ", "value": 440, "min": 100, "max": 5000 },
       { "type": "field_number", "name": "DUR",  "value": 500, "min": 50,  "max": 5000 }
     ],
-    "previousStatement": null, "nextStatement": null,
-    "colour": "#0c7a71", "tooltip": "Make the hub beep"
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
   },
   {
     "type": "ms_hub_light",
     "message0": "hub status light %1",
     "args0": [{ "type": "field_dropdown", "name": "COLOR", "options": [
-      ["green","GREEN"],["red","RED"],["yellow","YELLOW"],["blue","BLUE"],["white","WHITE"],["off","BLACK"]
+      ["green","GREEN"],["red","RED"],["yellow","YELLOW"],["blue","BLUE"],["white","WHITE"],["orange","ORANGE"],["cyan","CYAN"],["magenta","MAGENTA"],["off","BLACK"]
     ]}],
     "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
   },
   {
+    "type": "ms_hub_light_off",
+    "message0": "hub status light off",
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_btn_wait",
+    "message0": "wait for hub button %1",
+    "args0": [{ "type": "field_dropdown", "name": "BTN", "options": [
+      ["left","Button.LEFT"],["right","Button.RIGHT"],["center","Button.CENTER"],
+      ["Bluetooth","Button.BLUETOOTH"]
+    ]}],
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_btn_pressed",
+    "message0": "hub button %1 is pressed",
+    "args0": [{ "type": "field_dropdown", "name": "BTN", "options": [
+      ["left","Button.LEFT"],["right","Button.RIGHT"],["center","Button.CENTER"]
+    ]}],
+    "output": "Boolean", "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_display_image",
+    "message0": "hub display image %1",
+    "args0": [{ "type": "field_dropdown", "name": "IMG", "options": [
+      ["happy","Image.HAPPY"],["sad","Image.SAD"],["heart","Image.HEART"],["yes","Image.YES"],["no","Image.NO"],["smile","Image.SMILE"],["arrow N","Image.ARROW_N"],["arrow S","Image.ARROW_S"]
+    ]}],
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_display_text",
+    "message0": "hub display text %1",
+    "args0": [{ "type": "field_input", "name": "TEXT", "text": "Hi!" }],
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_display_off",
+    "message0": "hub display off",
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_imu_angle",
+    "message0": "hub orientation angle %1",
+    "args0": [{ "type": "field_dropdown", "name": "AXIS", "options": [
+      ["pitch","pitch"],["roll","roll"],["yaw","yaw"]
+    ]}],
+    "output": "Number", "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_battery_pct",
+    "message0": "hub battery %",
+    "output": "Number", "colour": "#0c7a71"
+  },
+  // ── Motors ───────────────────────────────────────────────────────────────
+  {
     "type": "ms_motor_run",
-    "message0": "motor port %1  speed %2 %%  for %3 sec",
+    "message0": "motor %1  speed %2 %%  for %3 sec",
     "args0": [
       { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
       { "type": "field_number", "name": "SPEED", "value": 30,  "min": -100, "max": 100 },
@@ -548,7 +621,7 @@ const MS_BLOCKLY_BLOCKS = [
   },
   {
     "type": "ms_motor_degrees",
-    "message0": "motor port %1  turn %2 degrees  speed %3 %%",
+    "message0": "motor %1  rotate %2 deg  at %3 %%",
     "args0": [
       { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
       { "type": "field_number", "name": "DEG",   "value": 90,  "min": -720, "max": 720 },
@@ -557,11 +630,134 @@ const MS_BLOCKLY_BLOCKS = [
     "previousStatement": null, "nextStatement": null, "colour": "#b45309"
   },
   {
+    "type": "ms_motor_start",
+    "message0": "motor %1  start at %2 %%",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "SPEED", "value": 30, "min": -100, "max": 100 }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
     "type": "ms_motor_stop",
-    "message0": "motor port %1  stop",
+    "message0": "motor %1  stop",
     "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
     "previousStatement": null, "nextStatement": null, "colour": "#b45309"
   },
+  {
+    "type": "ms_motor_angle",
+    "message0": "motor %1 angle",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#b45309"
+  },
+  {
+    "type": "ms_motor_speed",
+    "message0": "motor %1 speed",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#b45309"
+  },
+  {
+    "type": "ms_pair_move",
+    "message0": "drive  left %1  right %2  speed %3 %%  for %4 sec",
+    "args0": [
+      { "type": "field_dropdown", "name": "LEFT",  "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_dropdown", "name": "RIGHT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "SPEED", "value": 50, "min": -100, "max": 100 },
+      { "type": "field_number", "name": "SECS",  "value": 2,  "min": 0.1,  "max": 30  }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "ms_pair_steer",
+    "message0": "steer  left %1  right %2  steering %3  speed %4 %%  for %5 sec",
+    "args0": [
+      { "type": "field_dropdown", "name": "LEFT",  "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_dropdown", "name": "RIGHT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "STEER", "value": 0,  "min": -100, "max": 100 },
+      { "type": "field_number", "name": "SPEED", "value": 50, "min": -100, "max": 100 },
+      { "type": "field_number", "name": "SECS",  "value": 2,  "min": 0.1,  "max": 30  }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  // ── Color Sensor ─────────────────────────────────────────────────────────
+  {
+    "type": "ms_color_color",
+    "message0": "color sensor %1 detected color",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": null, "colour": "#d97706"
+  },
+  {
+    "type": "ms_color_is",
+    "message0": "color sensor %1 is %2",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_dropdown", "name": "COLOR", "options": [
+        ["red","Color.RED"],["green","Color.GREEN"],["blue","Color.BLUE"],["yellow","Color.YELLOW"],
+        ["black","Color.BLACK"],["white","Color.WHITE"],["none","None"]
+      ]}
+    ],
+    "output": "Boolean", "colour": "#d97706"
+  },
+  {
+    "type": "ms_color_ambient",
+    "message0": "color sensor %1 ambient light %%",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#d97706"
+  },
+  {
+    "type": "ms_color_reflection",
+    "message0": "color sensor %1 reflected light %%",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#d97706"
+  },
+  // ── Distance / Ultrasonic Sensor ─────────────────────────────────────────
+  {
+    "type": "ms_dist_mm",
+    "message0": "distance sensor %1 distance mm",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#0284c7"
+  },
+  {
+    "type": "ms_dist_cm",
+    "message0": "distance sensor %1 distance cm",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#0284c7"
+  },
+  {
+    "type": "ms_dist_less",
+    "message0": "distance sensor %1 < %2 mm",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "MM", "value": 200, "min": 1, "max": 2000 }
+    ],
+    "output": "Boolean", "colour": "#0284c7"
+  },
+  {
+    "type": "ms_dist_presence",
+    "message0": "ultrasonic sensor %1 detects presence",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Boolean", "colour": "#0284c7"
+  },
+  // ── Force Sensor ─────────────────────────────────────────────────────────
+  {
+    "type": "ms_force_newton",
+    "message0": "force sensor %1 force N",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Number", "colour": "#be185d"
+  },
+  {
+    "type": "ms_force_pressed",
+    "message0": "force sensor %1 is pressed",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Boolean", "colour": "#be185d"
+  },
+  {
+    "type": "ms_force_touched",
+    "message0": "force sensor %1 is touched",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "output": "Boolean", "colour": "#be185d"
+  },
+  // ── Control ──────────────────────────────────────────────────────────────
   {
     "type": "ms_wait",
     "message0": "wait %1 seconds",
@@ -569,9 +765,46 @@ const MS_BLOCKLY_BLOCKS = [
     "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
   },
   {
+    "type": "ms_wait_until_color",
+    "message0": "wait until color sensor %1 sees %2",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_dropdown", "name": "COLOR", "options": [
+        ["red","Color.RED"],["green","Color.GREEN"],["blue","Color.BLUE"],["yellow","Color.YELLOW"],["black","Color.BLACK"],["white","Color.WHITE"]
+      ]}
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
+  },
+  {
+    "type": "ms_wait_until_dist",
+    "message0": "wait until distance sensor %1 < %2 mm",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "MM", "value": 200, "min": 1, "max": 2000 }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
+  },
+  {
+    "type": "ms_wait_until_force",
+    "message0": "wait until force sensor %1 pressed",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
+  },
+  // ── Debug ────────────────────────────────────────────────────────────────
+  {
     "type": "ms_print",
     "message0": "print %1",
     "args0": [{ "type": "field_input", "name": "TEXT", "text": "Hello" }],
+    "previousStatement": null, "nextStatement": null, "colour": "#607d8b"
+  },
+  {
+    "type": "ms_print_val",
+    "message0": "print %1 = %2",
+    "args0": [
+      { "type": "field_input", "name": "LABEL", "text": "value" },
+      { "type": "input_value", "name": "VAL" }
+    ],
+    "inputsInline": true,
     "previousStatement": null, "nextStatement": null, "colour": "#607d8b"
   }
 ];
@@ -582,33 +815,94 @@ const BLOCKLY_TOOLBOX = {
     { "kind": "category", "name": "Hub", "colour": "#0c7a71",
       "contents": [
         { "kind": "block", "type": "ms_beep" },
-        { "kind": "block", "type": "ms_hub_light" }
+        { "kind": "block", "type": "ms_hub_light" },
+        { "kind": "block", "type": "ms_hub_light_off" },
+        { "kind": "block", "type": "ms_btn_wait" },
+        { "kind": "block", "type": "ms_btn_pressed" },
+        { "kind": "block", "type": "ms_display_image" },
+        { "kind": "block", "type": "ms_display_text" },
+        { "kind": "block", "type": "ms_display_off" },
+        { "kind": "block", "type": "ms_imu_angle" },
+        { "kind": "block", "type": "ms_battery_pct" }
       ]
     },
     { "kind": "category", "name": "Motors", "colour": "#b45309",
       "contents": [
         { "kind": "block", "type": "ms_motor_run" },
         { "kind": "block", "type": "ms_motor_degrees" },
-        { "kind": "block", "type": "ms_motor_stop" }
+        { "kind": "block", "type": "ms_motor_start" },
+        { "kind": "block", "type": "ms_motor_stop" },
+        { "kind": "block", "type": "ms_motor_angle" },
+        { "kind": "block", "type": "ms_motor_speed" },
+        { "kind": "block", "type": "ms_pair_move" },
+        { "kind": "block", "type": "ms_pair_steer" }
+      ]
+    },
+    { "kind": "category", "name": "Color Sensor", "colour": "#d97706",
+      "contents": [
+        { "kind": "block", "type": "ms_color_color" },
+        { "kind": "block", "type": "ms_color_is" },
+        { "kind": "block", "type": "ms_color_ambient" },
+        { "kind": "block", "type": "ms_color_reflection" }
+      ]
+    },
+    { "kind": "category", "name": "Distance Sensor", "colour": "#0284c7",
+      "contents": [
+        { "kind": "block", "type": "ms_dist_mm" },
+        { "kind": "block", "type": "ms_dist_cm" },
+        { "kind": "block", "type": "ms_dist_less" },
+        { "kind": "block", "type": "ms_dist_presence" }
+      ]
+    },
+    { "kind": "category", "name": "Force Sensor", "colour": "#be185d",
+      "contents": [
+        { "kind": "block", "type": "ms_force_newton" },
+        { "kind": "block", "type": "ms_force_pressed" },
+        { "kind": "block", "type": "ms_force_touched" }
       ]
     },
     { "kind": "category", "name": "Control", "colour": "#5c6bc0",
       "contents": [
         { "kind": "block", "type": "ms_wait" },
+        { "kind": "block", "type": "ms_wait_until_color" },
+        { "kind": "block", "type": "ms_wait_until_dist" },
+        { "kind": "block", "type": "ms_wait_until_force" },
         { "kind": "block", "type": "controls_repeat_ext",
           "inputs": { "TIMES": { "shadow": { "type": "math_number", "fields": { "NUM": 3 } } } }
         },
-        { "kind": "block", "type": "controls_whileUntil" }
+        { "kind": "block", "type": "controls_whileUntil" },
+        { "kind": "block", "type": "controls_if" },
+        { "kind": "block", "type": "controls_if", "extraState": { "hasElse": true } }
       ]
     },
     { "kind": "category", "name": "Debug", "colour": "#607d8b",
-      "contents": [{ "kind": "block", "type": "ms_print" }]
+      "contents": [
+        { "kind": "block", "type": "ms_print" },
+        { "kind": "block", "type": "ms_print_val" }
+      ]
     },
     { "kind": "sep" },
+    { "kind": "category", "name": "Logic", "colour": "%{BKY_LOGIC_HUE}",
+      "contents": [
+        { "kind": "block", "type": "logic_compare" },
+        { "kind": "block", "type": "logic_operation" },
+        { "kind": "block", "type": "logic_negate" },
+        { "kind": "block", "type": "logic_boolean" }
+      ]
+    },
     { "kind": "category", "name": "Math", "colour": "%{BKY_MATH_HUE}",
       "contents": [
         { "kind": "block", "type": "math_number" },
-        { "kind": "block", "type": "math_arithmetic" }
+        { "kind": "block", "type": "math_arithmetic" },
+        { "kind": "block", "type": "math_single" },
+        { "kind": "block", "type": "math_constrain" },
+        { "kind": "block", "type": "math_random_int" }
+      ]
+    },
+    { "kind": "category", "name": "Text", "colour": "%{BKY_TEXTS_HUE}",
+      "contents": [
+        { "kind": "block", "type": "text" },
+        { "kind": "block", "type": "text_join" }
       ]
     },
     { "kind": "category", "name": "Variables", "colour": "%{BKY_VARIABLES_HUE}", "custom": "VARIABLE" }
@@ -617,13 +911,50 @@ const BLOCKLY_TOOLBOX = {
 
 function registerBlocklyGenerators() {
   const Py = Blockly.Python;
-  Py["ms_beep"]          = b => `hub.speaker.beep(frequency=${b.getFieldValue("FREQ")}, duration=${parseFloat(b.getFieldValue("DUR")) / 1000})\n`;
-  Py["ms_hub_light"]     = b => { const c = b.getFieldValue("COLOR"); return c === "BLACK" ? `hub.status_light.off()\n` : `hub.status_light.on(Color.${c})\n`; };
-  Py["ms_motor_run"]     = b => `Motor('${b.getFieldValue("PORT")}').run_for_seconds(${b.getFieldValue("SECS")}, speed=${b.getFieldValue("SPEED")})\n`;
-  Py["ms_motor_degrees"] = b => `Motor('${b.getFieldValue("PORT")}').run_for_degrees(${b.getFieldValue("DEG")}, speed=${b.getFieldValue("SPEED")})\n`;
-  Py["ms_motor_stop"]    = b => `Motor('${b.getFieldValue("PORT")}').stop()\n`;
-  Py["ms_wait"]          = b => `wait_for_seconds(${b.getFieldValue("SECS")})\n`;
-  Py["ms_print"]         = b => `print("${b.getFieldValue("TEXT").replace(/"/g, '\\"')}")\n`;
+  const PORT_OBJ = { color: "ColorSensor", dist: "DistanceSensor", force: "ForceSensor" };
+  // Hub
+  Py["ms_beep"]         = b => `hub.speaker.beep(frequency=${b.getFieldValue("FREQ")}, duration=${parseFloat(b.getFieldValue("DUR")) / 1000})\n`;
+  Py["ms_hub_light"]    = b => { const c = b.getFieldValue("COLOR"); return c === "BLACK" ? `hub.status_light.off()\n` : `hub.status_light.on(Color.${c})\n`; };
+  Py["ms_hub_light_off"]= () => `hub.status_light.off()\n`;
+  const btnMap = { "Button.LEFT": "hub.left_button", "Button.RIGHT": "hub.right_button", "Button.CENTER": "hub.center_button", "Button.BLUETOOTH": "hub.bluetooth_button" };
+  Py["ms_btn_wait"]     = b => { const btn = btnMap[b.getFieldValue("BTN")] || "hub.left_button"; return `wait_until(lambda: ${btn}.is_pressed())\n`; };
+  Py["ms_btn_pressed"]  = b => { const btn = btnMap[b.getFieldValue("BTN")] || "hub.left_button"; return [`${btn}.is_pressed()`, Blockly.Python.ORDER_FUNCTION_CALL]; };
+  Py["ms_display_image"]= b => `hub.light_matrix.show_image("${b.getFieldValue("IMG").replace("Image.","")}")\n`;
+  Py["ms_display_text"] = b => `hub.light_matrix.write("${b.getFieldValue("TEXT")}")\n`;
+  Py["ms_display_off"]  = () => `hub.light_matrix.off()\n`;
+  Py["ms_imu_angle"]    = b => [`hub.motion_sensor.get_${b.getFieldValue("AXIS")}_angle()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_battery_pct"]  = () => [`hub.battery.voltage()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  // Motors
+  Py["ms_motor_run"]    = b => `Motor('${b.getFieldValue("PORT")}').run_for_seconds(${b.getFieldValue("SECS")}, speed=${b.getFieldValue("SPEED")})\n`;
+  Py["ms_motor_degrees"]= b => `Motor('${b.getFieldValue("PORT")}').run_for_degrees(${b.getFieldValue("DEG")}, speed=${b.getFieldValue("SPEED")})\n`;
+  Py["ms_motor_start"]  = b => `Motor('${b.getFieldValue("PORT")}').start(speed=${b.getFieldValue("SPEED")})\n`;
+  Py["ms_motor_stop"]   = b => `Motor('${b.getFieldValue("PORT")}').stop()\n`;
+  Py["ms_motor_angle"]  = b => [`Motor('${b.getFieldValue("PORT")}').get_degrees_counted()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_motor_speed"]  = b => [`Motor('${b.getFieldValue("PORT")}').get_speed()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_pair_move"]    = b => `MotorPair('${b.getFieldValue("LEFT")}', '${b.getFieldValue("RIGHT")}').move(${b.getFieldValue("SECS")} * ${b.getFieldValue("SPEED")} / 10, 'cm', steering=0, speed=${b.getFieldValue("SPEED")})\n`;
+  Py["ms_pair_steer"]   = b => `MotorPair('${b.getFieldValue("LEFT")}', '${b.getFieldValue("RIGHT")}').move_tank(${b.getFieldValue("SECS")}, 'seconds', left_speed=${b.getFieldValue("SPEED")}, right_speed=${b.getFieldValue("SPEED")})\n`;
+  // Color sensor
+  Py["ms_color_color"]    = b => [`ColorSensor('${b.getFieldValue("PORT")}').get_color()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_color_is"]       = b => [`ColorSensor('${b.getFieldValue("PORT")}').get_color() == ${b.getFieldValue("COLOR")}`, Blockly.Python.ORDER_RELATIONAL];
+  Py["ms_color_ambient"]  = b => [`ColorSensor('${b.getFieldValue("PORT")}').get_ambient_light()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_color_reflection"]= b => [`ColorSensor('${b.getFieldValue("PORT")}').get_reflected_light()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  // Distance sensor
+  Py["ms_dist_mm"]        = b => [`DistanceSensor('${b.getFieldValue("PORT")}').get_distance_mm()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_dist_cm"]        = b => [`DistanceSensor('${b.getFieldValue("PORT")}').get_distance_cm()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_dist_less"]      = b => [`DistanceSensor('${b.getFieldValue("PORT")}').get_distance_mm() < ${b.getFieldValue("MM")}`, Blockly.Python.ORDER_RELATIONAL];
+  Py["ms_dist_presence"]  = b => [`DistanceSensor('${b.getFieldValue("PORT")}').wait_for_distance_closer_than(1, 'cm')`, Blockly.Python.ORDER_FUNCTION_CALL];
+  // Force sensor
+  Py["ms_force_newton"]   = b => [`ForceSensor('${b.getFieldValue("PORT")}').get_force_newton()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_force_pressed"]  = b => [`ForceSensor('${b.getFieldValue("PORT")}').is_pressed()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  Py["ms_force_touched"]  = b => [`ForceSensor('${b.getFieldValue("PORT")}').is_touched()`, Blockly.Python.ORDER_FUNCTION_CALL];
+  // Control
+  Py["ms_wait"]             = b => `wait_for_seconds(${b.getFieldValue("SECS")})\n`;
+  Py["ms_wait_until_color"] = b => `wait_until(lambda: ColorSensor('${b.getFieldValue("PORT")}').get_color() == ${b.getFieldValue("COLOR")})\n`;
+  Py["ms_wait_until_dist"]  = b => `wait_until(lambda: DistanceSensor('${b.getFieldValue("PORT")}').get_distance_mm() < ${b.getFieldValue("MM")})\n`;
+  Py["ms_wait_until_force"] = b => `wait_until(lambda: ForceSensor('${b.getFieldValue("PORT")}').is_pressed())\n`;
+  // Debug
+  Py["ms_print"]    = b => `print("${b.getFieldValue("TEXT").replace(/"/g, '\\"')}")\n`;
+  Py["ms_print_val"]= (b, gen) => `print("${b.getFieldValue("LABEL")}:", ${gen.valueToCode(b, "VAL", Blockly.Python.ORDER_NONE) || "None"})\n`;
 }
 
 function initBlockly() {
@@ -636,7 +967,187 @@ function initBlockly() {
     trashcan: true,
     zoom: { controls: true, wheel: true, startScale: 1.0 }
   });
-  window._blocklyWs = blocklyWorkspace; // expose for debugging
+  window._blocklyWs = blocklyWorkspace;
+  registerCustomBlocks(); // load any saved custom blocks
+}
+
+// ─── Custom Blockly Blocks ─────────────────────────────────────────────────────
+const CUSTOM_BLOCKS_KEY = "ms_custom_blocks";
+
+function getCustomBlocks() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_BLOCKS_KEY) || "[]"); } catch { return []; }
+}
+function saveCustomBlocks(arr) {
+  localStorage.setItem(CUSTOM_BLOCKS_KEY, JSON.stringify(arr));
+}
+
+// Build a Blockly JSON block definition from a saved custom-block descriptor.
+function buildBlockDef(cb) {
+  const inputs = cb.inputs || [];
+  // Message: label text then one %N per input field
+  const message = cb.label + (inputs.length ? " " + inputs.map((_, i) => `%${i + 1}`).join(" ") : "");
+  const args0 = inputs.map(f => {
+    if (f.type === "number")   return { type: "field_number",   name: f.name, value: parseFloat(f.default) || 0 };
+    if (f.type === "dropdown") return { type: "field_dropdown", name: f.name,
+      options: (f.options || f.default || "A,B,C").split(",").map(o => [o.trim(), o.trim()]) };
+    return { type: "field_input", name: f.name, text: f.default || "" };
+  });
+  const def = { type: cb.id, message0: message, args0, colour: cb.colour || "#7c3aed",
+    tooltip: cb.label, helpUrl: "" };
+  if (cb.isStatement !== false) { def.previousStatement = null; def.nextStatement = null; }
+  else { def.output = null; }
+  return def;
+}
+
+function buildToolboxWithCustom(customs) {
+  const base = JSON.parse(JSON.stringify(BLOCKLY_TOOLBOX));
+  // Remove any previously injected custom categories
+  base.contents = base.contents.filter(c => !c._isCustom);
+  // Group custom blocks by category
+  const catMap = {};
+  for (const cb of customs) {
+    const cat = cb.category || "Custom";
+    if (!catMap[cat]) catMap[cat] = { colour: cb.colour || "#7c3aed", ids: [] };
+    catMap[cat].ids.push(cb.id);
+  }
+  const cats = Object.entries(catMap);
+  if (cats.length) {
+    base.contents.push({ kind: "sep", _isCustom: true });
+    for (const [name, { colour, ids }] of cats) {
+      base.contents.push({ kind: "category", name, colour, _isCustom: true,
+        contents: ids.map(type => ({ kind: "block", type })) });
+    }
+  }
+  return base;
+}
+
+function registerCustomBlocks() {
+  if (!window.Blockly || !blocklyWorkspace) return;
+  const customs = getCustomBlocks();
+  if (!customs.length) return;
+  // Re-define blocks (safe to call multiple times; Blockly warns but doesn't error)
+  Blockly.defineBlocksWithJsonArray(customs.map(buildBlockDef));
+  // Register Python generators
+  for (const cb of customs) {
+    Blockly.Python[cb.id] = function(block) {
+      let code = cb.pythonTemplate || "";
+      for (const f of (cb.inputs || [])) {
+        const raw = block.getFieldValue(f.name) ?? "";
+        // Wrap text-type values in quotes; numbers/dropdowns go bare
+        const val = f.type === "text" ? `"${String(raw).replace(/"/g, '\\"')}"` : raw;
+        code = code.split(`{${f.name}}`).join(val);
+      }
+      if (cb.isStatement === false) {
+        return [code || "None", Blockly.Python.ORDER_FUNCTION_CALL];
+      }
+      return code.endsWith("\n") ? code : code + "\n";
+    };
+  }
+  // Update live toolbox
+  try { blocklyWorkspace.updateToolbox(buildToolboxWithCustom(customs)); } catch {}
+}
+
+// ─── Custom Block Modal Controller ───────────────────────────────────────────────
+let _cbInputSeq = 0;
+
+function openCustomBlockModal() {
+  _cbInputSeq = 0;
+  el("cbInputRows").innerHTML = "";
+  el("cbName").value = "";
+  el("cbPythonTpl").value = "";
+  el("cbCategory").value = "Custom";
+  el("cbColour").value = "#7c3aed";
+  el("cbIsStatement").value = "statement";
+  renderCbSavedList();
+  el("customBlockModal").style.display = "flex";
+  el("cbName").focus();
+}
+
+function closeCustomBlockModal() {
+  el("customBlockModal").style.display = "none";
+}
+
+function addCbInputRow() {
+  const idx = _cbInputSeq++;
+  const div = document.createElement("div");
+  div.className = "cb-input-row";
+  div.innerHTML = `
+    <input type="text" class="cb-in-label" placeholder="Label in block" value="">
+    <input type="text" class="cb-in-name"  placeholder="FIELD_NAME" value="PARAM${idx + 1}" style="max-width:110px;text-transform:uppercase">
+    <select class="cb-in-type">
+      <option value="number">Number</option>
+      <option value="text">Text</option>
+      <option value="dropdown">Dropdown</option>
+    </select>
+    <input type="text" class="cb-in-default" placeholder="Default / options (A,B,C)" value="">
+    <button type="button" class="cb-rm" title="Remove">&times;</button>
+  `;
+  div.querySelector(".cb-in-name").addEventListener("input", e => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+  });
+  div.querySelector(".cb-rm").addEventListener("click", () => div.remove());
+  el("cbInputRows").appendChild(div);
+}
+
+function saveCbBlock() {
+  const label = el("cbName").value.trim();
+  if (!label) { el("cbName").focus(); el("cbName").style.outline = "2px solid #ef4444"; return; }
+  el("cbName").style.outline = "";
+  const rows = [...el("cbInputRows").querySelectorAll(".cb-input-row")];
+  const inputs = rows.map(row => ({
+    label:   row.querySelector(".cb-in-label")  .value.trim(),
+    name:    row.querySelector(".cb-in-name")   .value.trim().toUpperCase() || `PARAM${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+    type:    row.querySelector(".cb-in-type")   .value,
+    default: row.querySelector(".cb-in-default").value.trim(),
+    options: row.querySelector(".cb-in-type")   .value === "dropdown"
+             ? row.querySelector(".cb-in-default").value.trim() : undefined
+  }));
+  const id = "custom_" + Date.now();
+  const cb = {
+    id, label,
+    category:      el("cbCategory").value.trim() || "Custom",
+    colour:        el("cbColour").value,
+    inputs,
+    pythonTemplate: el("cbPythonTpl").value,
+    isStatement:   el("cbIsStatement").value !== "value"
+  };
+  const arr = getCustomBlocks();
+  arr.push(cb);
+  saveCustomBlocks(arr);
+  registerCustomBlocks();
+  renderCbSavedList();
+  // Reset form fields for next block
+  el("cbName").value = ""; el("cbPythonTpl").value = ""; el("cbInputRows").innerHTML = ""; _cbInputSeq = 0;
+  setCodeStatus(`✓ Custom block "${label}" added to toolbox — find it in the ${cb.category} category`);
+}
+
+function deleteCbBlock(id) {
+  if (!confirm("Delete this custom block?")) return;
+  const arr = getCustomBlocks().filter(b => b.id !== id);
+  saveCustomBlocks(arr);
+  if (blocklyWorkspace) {
+    blocklyWorkspace.getBlocksByType(id, false).forEach(b => b.dispose(false));
+    try { blocklyWorkspace.updateToolbox(buildToolboxWithCustom(arr)); } catch {}
+  }
+  renderCbSavedList();
+}
+
+function renderCbSavedList() {
+  const list = el("cbSavedList");
+  const customs = getCustomBlocks();
+  if (!customs.length) { list.innerHTML = ""; return; }
+  const items = customs.map(cb => {
+    const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cb.colour};margin-right:6px"></span>`;
+    return `<div class="cb-saved-item">
+      <span class="cb-saved-item-name">${dot}${cb.label}</span>
+      <span class="cb-saved-item-cat">${cb.category}</span>
+      <button class="cb-saved-del" data-id="${cb.id}" title="Delete block">&#128465;</button>
+    </div>`;
+  }).join("");
+  list.innerHTML = `<div class="cb-saved-list-title">Saved custom blocks (${customs.length})</div>${items}`;
+  list.querySelectorAll(".cb-saved-del").forEach(btn => {
+    btn.addEventListener("click", () => deleteCbBlock(btn.dataset.id));
+  });
 }
 
 function buildBlocklyIntentXml(profile, intent) {
@@ -727,14 +1238,14 @@ function getBlocklyPython(profile) {
 
 async function showBlocklyEditor() {
   el("editorWrap").style.display = "none";
+  el("customBlockBtn").style.display = "";
   const div = el("blocklyDiv");
   div.style.display = "block";
   setCodeStatus("Loading Blockly...");
   try {
     await loadBlocklyScripts();
-    void div.offsetWidth; void div.offsetHeight; // force layout before Blockly measures
+    void div.offsetWidth; void div.offsetHeight;
     initBlockly();
-    // Double-RAF ensures browser has laid out the div at full width before svgResize
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (blocklyWorkspace) Blockly.svgResize(blocklyWorkspace);
     }));
@@ -746,6 +1257,7 @@ async function showBlocklyEditor() {
 
 function showTextEditor() {
   el("blocklyDiv").style.display = "none";
+  el("customBlockBtn").style.display = "none";
   el("editorWrap").style.display = "";
   if (editor) editor.refresh();
 }
@@ -1522,9 +2034,10 @@ function initEditor() {
   });
   editor.setSize("100%", "100%");
 
-  // Dropdown on '.' or identifier chars
+  // Dropdown on '.' or identifier chars (not on Tab — Tab accepts ghost text)
   editor.on("keyup", (cm, e) => {
-    if (pendingCompletion && e.key !== "Tab" && e.key !== "Shift") clearGhostText();
+    if (e.key === "Tab" || e.key === "Shift") return;
+    if (ghostMark) return; // don't show dropdown while ghost is visible
     if (e.key === "." || (e.key.length === 1 && /[a-zA-Z_]/.test(e.key))) {
       if (!cm.state.completionActive) cm.showHint({ hint: mindstormsHint, completeSingle: false });
     }
@@ -1533,8 +2046,8 @@ function initEditor() {
   // LLM inline suggestion on idle
   let llmTimer = null;
   editor.on("change", (cm, change) => {
-    if (change.origin === "+delete") { clearGhostText(); return; }
-    clearGhostText();
+    if (_ghosting || change.origin === "+ghost") return; // ignore ghost text mutations
+    if (ghostMark) clearGhostText();
     clearTimeout(llmTimer);
     if (isBlocklyTarget() || !llm.url) return;
     llmTimer = setTimeout(async () => {
@@ -1543,7 +2056,7 @@ function initEditor() {
       if (prefix.trim().length < 30) return;
       const suffix = cm.getRange(cur, { line: Math.min(cur.line + 5, cm.lastLine()), ch: 999 });
       const completion = await getLlmCompletion(prefix, suffix);
-      if (completion) showGhostText(completion);
+      if (completion && !ghostMark) showGhostText(completion);
     }, 900);
   });
 }
@@ -2099,6 +2612,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // AI completions
   el("aiDetectBtn")?.addEventListener("click", detectLlm);
+
+  // Custom Blockly blocks modal
+  el("customBlockBtn").addEventListener("click", openCustomBlockModal);
+  el("cbCloseBtn").addEventListener("click", closeCustomBlockModal);
+  el("cbSaveBtn").addEventListener("click", saveCbBlock);
+  el("cbAddInputBtn").addEventListener("click", addCbInputRow);
+  el("customBlockModal").addEventListener("click", e => {
+    if (e.target === el("customBlockModal")) closeCustomBlockModal();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && el("customBlockModal").style.display !== "none") closeCustomBlockModal();
+  });
 
   // Blockly resize on window resize
   window.addEventListener("resize", () => {

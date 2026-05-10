@@ -24,29 +24,73 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
-        <svg width="30" height="30" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+        <svg width="34" height="34" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="tl-hub" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#0c7a71"/>
-              <stop offset="100%" stop-color="#0a6860"/>
-            </linearGradient>
-            <linearGradient id="tl-glow" x1="0" y1="0" x2="1" y2="1">
+            <radialGradient id="bg-grad" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#1a2e3a"/>
+              <stop offset="100%" stop-color="#0a141a"/>
+            </radialGradient>
+            <radialGradient id="brain-grad" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#c084fc"/>
+              <stop offset="100%" stop-color="#7c3aed"/>
+            </radialGradient>
+            <radialGradient id="eye-l" cx="35%" cy="35%" r="55%">
+              <stop offset="0%" stop-color="#67e8f9"/>
+              <stop offset="100%" stop-color="#0891b2"/>
+            </radialGradient>
+            <radialGradient id="eye-r" cx="35%" cy="35%" r="55%">
               <stop offset="0%" stop-color="#5eead4"/>
-              <stop offset="100%" stop-color="#2dd4bf"/>
+              <stop offset="100%" stop-color="#0c7a71"/>
+            </radialGradient>
+            <linearGradient id="body-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1e4a5a"/>
+              <stop offset="100%" stop-color="#0f2d38"/>
             </linearGradient>
+            <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
-          <rect width="192" height="192" rx="36" fill="#0d1a20"/>
-          <rect x="32" y="52" width="128" height="88" rx="18" fill="url(#tl-hub)"/>
-          <rect x="44" y="64" width="104" height="64" rx="12" fill="#0a5c55" opacity="0.6"/>
-          <circle cx="96" cy="96" r="24" fill="#0d1a20" opacity="0.7"/>
-          <circle cx="96" cy="96" r="18" fill="url(#tl-glow)" opacity="0.9"/>
-          <circle cx="96" cy="96" r="11" fill="#0d1a20"/>
-          <circle cx="96" cy="96" r="6"  fill="url(#tl-glow)"/>
-          <rect x="50" y="70" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
-          <rect x="50" y="108" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
-          <rect x="128" y="70" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
-          <rect x="128" y="108" width="14" height="14" rx="4" fill="#0d1a20" opacity="0.7"/>
-          <path d="M 72 30 A 34 34 0 0 1 120 30" stroke="#5eead4" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+          <!-- rounded square bg -->
+          <rect width="200" height="200" rx="38" fill="url(#bg-grad)"/>
+          <!-- neck -->
+          <rect x="84" y="118" width="32" height="14" rx="4" fill="#1a3a48"/>
+          <!-- body -->
+          <rect x="42" y="130" width="116" height="52" rx="14" fill="url(#body-grad)" stroke="#2a5a70" stroke-width="2"/>
+          <!-- body port dots -->
+          <circle cx="68" cy="156" r="7" fill="#0d1a22" stroke="#5eead4" stroke-width="1.5"/>
+          <circle cx="100" cy="156" r="7" fill="#0d1a22" stroke="#5eead4" stroke-width="1.5"/>
+          <circle cx="132" cy="156" r="7" fill="#0d1a22" stroke="#5eead4" stroke-width="1.5"/>
+          <!-- arms -->
+          <rect x="18" y="134" width="22" height="10" rx="5" fill="#173040"/>
+          <rect x="160" y="134" width="22" height="10" rx="5" fill="#173040"/>
+          <!-- head jar (glass cylinder) -->
+          <ellipse cx="100" cy="72" rx="44" ry="12" fill="#1a3a48" opacity="0.7"/>
+          <rect x="56" y="26" width="88" height="46" fill="#0d2030" opacity="0.55"/>
+          <rect x="56" y="26" width="88" height="46" rx="0" fill="none" stroke="#5eead4" stroke-width="2.5" opacity="0.5"/>
+          <ellipse cx="100" cy="26" rx="44" ry="12" fill="#1e4a5a" opacity="0.9"/>
+          <!-- brain -->
+          <ellipse cx="100" cy="48" rx="28" ry="22" fill="url(#brain-grad)" filter="url(#glow)" opacity="0.92"/>
+          <!-- brain folds -->
+          <path d="M78 42 Q88 36 100 40 Q112 36 122 42" stroke="#e9d5ff" stroke-width="1.5" fill="none" opacity="0.6"/>
+          <path d="M76 50 Q88 44 100 48 Q112 44 124 50" stroke="#e9d5ff" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <path d="M79 57 Q90 52 100 55 Q110 52 121 57" stroke="#e9d5ff" stroke-width="1.5" fill="none" opacity="0.4"/>
+          <line x1="100" y1="28" x2="100" y2="38" stroke="#a78bfa" stroke-width="1.5" opacity="0.7"/>
+          <!-- head base / face plate -->
+          <rect x="58" y="72" width="84" height="48" rx="12" fill="url(#body-grad)" stroke="#2a5a70" stroke-width="2"/>
+          <!-- left eye (blue, Wall-E style binocular) -->
+          <rect x="64" y="80" width="28" height="22" rx="8" fill="#0d1a22" stroke="#67e8f9" stroke-width="2"/>
+          <circle cx="78" cy="91" r="9" fill="url(#eye-l)" filter="url(#glow)"/>
+          <circle cx="78" cy="91" r="5" fill="#0d1a22"/>
+          <circle cx="80" cy="89" r="2" fill="#fff" opacity="0.8"/>
+          <!-- right eye (green, slightly different) -->
+          <rect x="108" y="80" width="28" height="22" rx="8" fill="#0d1a22" stroke="#5eead4" stroke-width="2"/>
+          <circle cx="122" cy="91" r="9" fill="url(#eye-r)" filter="url(#glow)"/>
+          <circle cx="122" cy="91" r="5" fill="#0d1a22"/>
+          <circle cx="124" cy="89" r="2" fill="#fff" opacity="0.8"/>
+          <!-- antenna on top of jar -->
+          <line x1="100" y1="14" x2="100" y2="4" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="100" cy="4" r="4" fill="#5eead4" filter="url(#glow)"/>
+          <!-- mouth indicator bar -->
+          <rect x="76" y="108" width="48" height="6" rx="3" fill="#0d1a22"/>
+          <rect x="76" y="108" width="20" height="6" rx="3" fill="#5eead4" opacity="0.8"/>
         </svg>
       </div>
       <span class="brand-name">Mindstorms Robot Creator</span>
@@ -103,17 +147,18 @@
           <button id="downloadLmsBtn" type="button">&#8595; Download .lms</button>
           <button id="runUsbBtn" type="button" disabled>&#9654; Run via USB</button>
           <button id="saveLmsBtn" type="button" class="btn-secondary">Save to server</button>
+          <button id="customBlockBtn" type="button" class="btn-secondary" style="display:none" title="Create a custom Blockly block">&#10010; Block</button>
         </div>
         <div class="ai-status-row">
           <span id="aiPill" class="pill pill-off" title="No AI — click Detect AI">&#9679; AI off</span>
           <label class="inline-label" style="flex:0 0 auto">Model
-            <input id="aiModelInput" type="text" value="codellama:7b" style="width:120px" spellcheck="false" autocomplete="off">
+            <input id="aiModelInput" type="text" value="qwen2.5-coder:7b" style="width:140px" spellcheck="false" autocomplete="off">
           </label>
           <label class="inline-label" style="flex:0 0 auto">Endpoint
             <input id="aiEndpointInput" type="url" value="http://localhost:11434" style="width:190px" spellcheck="false">
           </label>
           <button id="aiDetectBtn" type="button" class="btn-secondary">Detect AI</button>
-          <span class="note" style="font-size:11px">Ollama &middot; llama.cpp &middot; Ctrl+Space for hints &middot; Tab to accept AI suggestion</span>
+          <span class="note" style="font-size:11px">Ollama &middot; llama.cpp &middot; Ctrl+Space for dropdown &middot; ghost text appears after 0.9s idle &middot; <kbd>Tab</kbd> to accept</span>
         </div>
         <div id="editorWrap">
           <textarea id="editorArea">
@@ -330,6 +375,50 @@
       </section>
 
     </main>
+  </div>
+</div>
+
+<!-- Custom Block Editor Modal -->
+<div id="customBlockModal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cbModalTitle">
+  <div class="modal-box">
+    <h3 id="cbModalTitle" class="modal-title">&#10010; Custom Block</h3>
+    <div class="cb-form">
+      <label class="cb-field-row">
+        <span>Block label <small>(shown in block)</small></span>
+        <input id="cbName" type="text" placeholder="e.g. Run Edge Impulse Model" maxlength="60" autocomplete="off">
+      </label>
+      <div class="cb-row2">
+        <label class="cb-field-row" style="flex:1">
+          <span>Category</span>
+          <input id="cbCategory" type="text" value="Custom" maxlength="24" autocomplete="off">
+        </label>
+        <label class="cb-field-row" style="flex:0 0 auto">
+          <span>Colour</span>
+          <input id="cbColour" type="color" value="#7c3aed">
+        </label>
+        <label class="cb-field-row" style="flex:0 0 auto">
+          <span>Type</span>
+          <select id="cbIsStatement">
+            <option value="statement">Statement</option>
+            <option value="value">Value</option>
+          </select>
+        </label>
+      </div>
+      <div class="cb-inputs-header">
+        <span>Inputs <small>(inline fields &mdash; keep under 4)</small></span>
+        <button id="cbAddInputBtn" type="button" class="btn-secondary">+ Add input</button>
+      </div>
+      <div id="cbInputRows" class="cb-input-rows"></div>
+      <label class="cb-field-row">
+        <span>Python template &mdash; use <code>{FIELD_NAME}</code> for each input; text fields are auto-quoted</span>
+        <textarea id="cbPythonTpl" rows="3" placeholder="e.g. result = run_classifier({MODEL}, threshold={CONF})&#10;print(result)"></textarea>
+      </label>
+    </div>
+    <div id="cbSavedList" class="cb-saved-list"></div>
+    <div class="modal-actions">
+      <button id="cbSaveBtn" type="button">Save Block</button>
+      <button id="cbCloseBtn" type="button" class="btn-secondary">Close</button>
+    </div>
   </div>
 </div>
 
