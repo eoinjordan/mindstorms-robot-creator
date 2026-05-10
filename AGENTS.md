@@ -14,17 +14,18 @@ Local robotics project for LEGO MINDSTORMS (RCX, NXT, EV3, SPIKE Prime, Robot In
 
 ## Read these first
 
-1. `README.md` - product overview
-2. `MCP_SERVER.md` - local server API
-3. `docs/CLI.md` - before changing CLI workflows
-4. `docs/HUMAN_IN_THE_LOOP_BUILDER.md` - before changing builder/debug logic
-5. `docs/KID_SAFE_DEBUGGING.md` - before adding child-facing content
-6. `docs/ANDROID_APP.md`, `docs/ANDROID_BUILDER_DESIGN.md` - before changing the Android app
-7. `docs/ADAPTERS.md` - before touching hardware adapters
-8. `docs/DATA_AND_MODELS.md` - before changing schemas or classifier logic
-9. `docs/CODE_GENERATION.md` - before adding code generation templates
-10. `docs/ROADMAP.md` - milestone order
-11. `docs/OFFICIAL_LEGO_CLIENT.md` - before integrating the official LEGO client
+1. `SOUL.md` - project purpose and product guardrails
+2. `README.md` - product overview
+3. `MCP_SERVER.md` - local server API
+4. `docs/CLI.md` - before changing CLI workflows
+5. `docs/HUMAN_IN_THE_LOOP_BUILDER.md` - before changing builder/debug logic
+6. `docs/KID_SAFE_DEBUGGING.md` - before adding child-facing content
+7. `docs/ANDROID_APP.md`, `docs/ANDROID_BUILDER_DESIGN.md` - before changing the Android app
+8. `docs/ADAPTERS.md` - before touching hardware adapters
+9. `docs/DATA_AND_MODELS.md` - before changing schemas or classifier logic
+10. `docs/CODE_GENERATION.md` - before adding code generation templates
+11. `docs/ROADMAP.md` - milestone order
+12. `docs/OFFICIAL_LEGO_CLIENT.md` - before integrating the official LEGO client
 
 ## Commands
 
@@ -120,6 +121,7 @@ Done:
 - Android app (Kotlin/Compose, BLE/USB, session history, voice KWS)
 - Electron desktop app (Windows, macOS, Linux)
 - MCP stdio server
+- Latest local Android Studio APK uploaded to the main GitHub release
 
 Up next:
 

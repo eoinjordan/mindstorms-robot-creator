@@ -20,7 +20,15 @@ The active Android Studio app is under:
 C:\Users\Eoin\AndroidStudioProjects\MindstormsAICreator
 ```
 
-The older repo scaffold under `android/robot-inventor-app` is reference material only. Gemini and other Android agents should build the Android Studio project above.
+The older repo scaffold under `android/robot-inventor-app` is reference material only. Gemini and other Android agents should build the Android Studio project above when the task is about the local APK.
+
+The public Android GitHub repo is a separate copy:
+
+```text
+C:\Users\Eoin\git\mindstorms-robot-creator-android
+```
+
+Use that repo for GitHub Actions, releases, package `com.eoinedge.robotinventor`, and public APK publishing. Keep the two source trees intentionally synced when fixes are shared.
 
 ### Files built so far
 
@@ -28,22 +36,29 @@ The older repo scaffold under `android/robot-inventor-app` is reference material
 | --- | --- |
 | `RobotTransport.kt` | `RobotTransport` interface; `RobotDevice`, `RobotConnection`, `RobotDescription`, `ProbePlan`, `ProbeTelemetry`, `ImuData`, `ProbeSession` data models |
 | `SimulatedTransport.kt` | Full fake transport: scan returns all 5 robots, `runProbe` streams random IMU and encoder data every 100 ms |
-| `SpikeBleTransport.kt` | BLE skeleton: scan/connect/probe stubs, BLE permissions in manifest |
+| `SpikeBleTransport.kt` | BLE scanning path, connect/probe placeholders, BLE permissions in manifest |
 | `RobotProfile.kt` | `RobotProfile`, `ProfilePort` kotlinx-serializable models; `ProfileRepository` loads `robot_profiles_51515.json` from assets |
-| `MainActivity.kt` | Two-panel fleet screen: sidebar list + detail pane, simulated/BLE transport toggle, scan button, opens ProbeRunner |
-| `ProbeRunner.kt` | Probe runner dialog: session label/notes, start/stop, live `TelemetryGraph` per IMU axis, JSON string export of `ProbeSession` |
+| `MainActivity.kt` | App shell with Fleet, Probe, Builder, Code, Voice, History, and Settings surfaces |
+| `MindstormsFleetScreen.kt` | Responsive fleet/profile screen; compact phones stack controls/profiles/details, wide screens use two panes |
+| `ProbeRunner.kt` | Probe runner dialog: session label/notes, start/stop, live `TelemetryGraph` per IMU axis, persisted session data |
+| `LocalDatabase.kt` | Room database for local sessions |
+| `BuilderSessionScreen.kt` | Human-in-the-loop builder workflow with observations, summaries, and LEGO client handoff |
+| `MindstormsMcpClient.kt` | Fake and HTTP MCP clients for builder sessions, official handoff, and code generation |
+| `CodeScreen.kt` | Blockly editor shell, profile-aware code generation, and `.lms` export/share flow |
+| `VoiceScreen.kt` | Voice observation and keyword workflow surface |
+| `SessionHistoryScreen.kt` | Local session history review |
+| `SettingsScreen.kt` | App/server settings |
 | `TelemetryGraph.kt` | Canvas-based scrolling line graph for float time-series |
 
 ### What is not yet built
 
 | Missing piece | Where it belongs | Design reference |
 | --- | --- | --- |
-| Builder Session screen | Primary tab/screen | `docs/ANDROID_BUILDER_DESIGN.md` |
-| Room database | Local session and profile storage | Stack section below |
-| HTTP MCP client | Calls `http://127.0.0.1:3095` | `MCP_SERVER.md` |
-| BLE scan wired to transport | Fleet tab live scan | `SpikeBleTransport.kt` stubs |
-| Dataset Capture screen | Label + export to file | Schema: `schemas/probe-session.schema.json` |
-| Fake-client unit tests | Android test source set | `docs/ANDROID_BUILDER_DESIGN.md` |
+| Direct hub command execution over BLE | `SpikeBleTransport` or Pybricks/LWP3 transport module | `docs/ADAPTERS.md` |
+| Hardware-backed probe capture | Probe Runner + transport implementation | Schema: `schemas/probe-session.schema.json` |
+| Edge Impulse/TFLite classifier runtime | Classifier screen/view model | `docs/DATA_AND_MODELS.md` |
+| ExecuTorch runtime option | Model runtime module after a useful PyTorch model exists | `docs/DATA_AND_MODELS.md` |
+| Compose instrumentation tests | Android test source set | `docs/ANDROID_BUILDER_DESIGN.md` |
 
 Current design update:
 
@@ -52,6 +67,7 @@ Current design update:
 - The app should support both HTTP MCP calls and fake in-app clients for tests.
 - The browser prototype in `test-apps/builder-console/` is the current low-cost screen model.
 - Detailed design notes are in `docs/ANDROID_BUILDER_DESIGN.md`.
+- Phone layout must not force a fixed sidebar; the fleet screen should stack on compact widths and use panes only on wide displays.
 
 Open `C:\Users\Eoin\AndroidStudioProjects\MindstormsAICreator` in Android Studio or run the Gradle wrapper there once JDK and Android SDK dependencies are available.
 

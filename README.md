@@ -2,7 +2,7 @@
 
 Build, code, and connect LEGO MINDSTORMS robots. Works in the browser, as a desktop app, on Android, and as an AI agent tool.
 
-**[Live Web App](https://eoinjordan.github.io/mindstorms-robot-creator/)** | **[Android Repo](https://github.com/eoinjordan/mindstorms-robot-creator-android)**
+**[Live Web App](https://eoinjordan.github.io/mindstorms-robot-creator/)** | **[Android APK](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk)** | **[Android Repo](https://github.com/eoinjordan/mindstorms-robot-creator-android)**
 
 [![npm](https://img.shields.io/npm/v/mindstorms-robot-creator?label=npm&color=teal)](https://www.npmjs.com/package/mindstorms-robot-creator)
 [![GitHub release](https://img.shields.io/github/v/release/eoinjordan/mindstorms-robot-creator?label=release)](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest)
@@ -20,7 +20,7 @@ Build, code, and connect LEGO MINDSTORMS robots. Works in the browser, as a desk
 | **Windows** (.exe) | [mindstorms-robot-creator-setup.exe](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
 | **macOS** (.dmg) | [GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
 | **Linux** (.AppImage) | [GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
-| **Android** APK | [app-release.apk](https://github.com/eoinjordan/mindstorms-robot-creator-android/releases/latest) |
+| **Android** APK | [mindstorms-ai-creator-latest-debug.apk](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk) |
 | **Browser** | [eoinjordan.github.io/mindstorms-robot-creator](https://eoinjordan.github.io/mindstorms-robot-creator/) |
 
 ---
@@ -87,7 +87,9 @@ npm run electron:build:linux  # Linux
 
 ### Android
 
-Install the APK from [Releases](https://github.com/eoinjordan/mindstorms-robot-creator-android/releases) or build from the [Android repo](https://github.com/eoinjordan/mindstorms-robot-creator-android).
+Install the current APK from [this release download](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk). The APK currently published there was built from `C:\Users\Eoin\AndroidStudioProjects\MindstormsAICreator`.
+
+The public Android repo is [mindstorms-robot-creator-android](https://github.com/eoinjordan/mindstorms-robot-creator-android), package `com.eoinedge.robotinventor`.
 
 Built with Kotlin and Jetpack Compose, with BLE and USB transport, session history, and voice keyword spotting. F-Droid submission pending.
 

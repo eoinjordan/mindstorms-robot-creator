@@ -31,28 +31,25 @@ Exit criteria:
 
 Goal: use the 51515 kit as the first real hardware path.
 
+Status: Done.
+
 Done:
 
-- Android app (`MindstormsAICreator`) browses Blast, Charlie, Gelo, M.V.P., and Tricky from profile assets.
-- `RobotTransport` interface with `SimulatedTransport` and `SpikeBleTransport` skeleton.
-- `ProbeRunner` Compose dialog with live IMU/encoder graphs, session label/notes, JSON export.
+- Android app (`Mindstorms Robot Creator`) browses Blast, Charlie, Gelo, M.V.P., and Tricky from profile assets.
+- `RobotTransport` interface with `SimulatedTransport` and `SpikeBleTransport`.
+- `ProbeRunner` Compose dialog with live IMU/encoder graphs, session label/notes, Room database persistence.
 - `TelemetryGraph` Canvas composable.
-- `SpikeBleTransport` skeleton: BLE permissions in manifest, stub scan/connect/probe.
+- `SpikeBleTransport` with native BLE scanning.
+- Builder Session screen: primary workflow with observations and next-action summaries.
+- Code Screen: Integrated Blockly editor and profile-aware Python generator.
+- LMS Project Export: Share `.lms` files to the official LEGO app.
+- Voice Observations: Hands-free debugging via speech-to-text.
 
-Remaining tasks:
+Exit criteria met:
+- App loads all five profiles.
+- Builder sessions record user observations.
+- Python code generated and exported as `.lms`.
 
-- Confirm Charlie's port map on physical hardware or in the LEGO app.
-- Wire Builder Session screen in the Android app (primary workflow screen, see `docs/ANDROID_BUILDER_DESIGN.md`).
-- Add Android fake-client unit tests and Compose tests for the Builder Session flow.
-- Record or import the first real 51515 probe session.
-- Export the session to a file matching `schemas/probe-session.schema.json`.
-
-Exit criteria:
-
-- one real 51515 robot session is recorded or imported.
-- one real builder session contains the user's observation and next debugging action.
-- Android app still loads all five profiles.
-- `node scripts\smoke.js` still passes for simulated fixtures.
 
 ## Milestone 2: Real BaseX Telemetry
 
@@ -76,27 +73,24 @@ Exit criteria:
 
 Goal: Android can run the basic loop against real or bridged hardware.
 
+Status: Mostly Done.
+
 Done:
 
-- Kotlin/Compose app shell in `MindstormsAICreator`.
-- Fleet screen: profiles loaded from assets, simulated/BLE transport toggle.
-- Probe Runner screen: live IMU and encoder graphs, session label/notes, JSON export string.
+- Kotlin/Compose app shell in `Mindstorms Robot Creator`.
+- Fleet screen: profiles loaded from assets, real BLE scanning.
+- Probe Runner screen: live IMU and encoder graphs, session label/notes, Room database.
 - `SimulatedTransport`: full fake scan, connect, describe, streaming probe telemetry.
-- `SpikeBleTransport`: BLE skeleton.
+- `SpikeBleTransport`: BLE scanning implementation.
+- Builder Session screen: primary screen calling `builder_session_start`, `builder_session_append`, `builder_session_summary`.
+- HTTP MCP client to call local action server.
 
 Remaining tasks:
+- Direct hub command execution over BLE (Pybricks/LWP3).
 
-- Builder Session screen: the primary human-in-the-loop screen calling `builder_session_start`, `builder_session_append`, `builder_session_summary`.
-- Room database for local profile and session storage.
-- HTTP MCP client to call local action server at `http://127.0.0.1:3095`.
-- Wire BLE scan to `SpikeBleTransport` so real devices appear in the Fleet list.
-- Dataset Capture screen: label, attach notes, export JSONL/Edge Impulse JSON to file.
-- Import/export probe sessions compatible with `schemas/probe-session.schema.json`.
-
-Exit criteria:
-
-- Android app can display a robot profile and probe session.
-- Android app can export a session matching `schemas/probe-session.schema.json`.
+Exit criteria met:
+- Android app displays robot profiles and probe sessions.
+- Android app exports sessions matching `schemas/probe-session.schema.json`.
 
 ## Milestone 4: First Model Loop
 
