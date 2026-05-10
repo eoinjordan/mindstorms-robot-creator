@@ -93,6 +93,16 @@ The public Android repo is [mindstorms-robot-creator-android](https://github.com
 
 Built with Kotlin and Jetpack Compose, with BLE and USB transport, session history, and voice keyword spotting. F-Droid submission pending.
 
+### Pybricks Firmware
+
+If you choose a Pybricks code target, install or restore firmware through Pybricks:
+
+- Pybricks Code: https://code.pybricks.com/
+- Install Pybricks firmware: https://pybricks.com/learn/getting-started/install-pybricks/
+- Pybricks documentation: https://docs.pybricks.com/
+
+This project generates compatible Python and handoff steps; it does not bundle Pybricks firmware.
+
 ---
 
 ## MCP server

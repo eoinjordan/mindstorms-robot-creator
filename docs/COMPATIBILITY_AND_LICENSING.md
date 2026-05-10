@@ -82,6 +82,7 @@ Do not:
 
 References:
 
+- Pybricks Code: https://code.pybricks.com/
 - Pybricks docs: https://docs.pybricks.com/
 - Pybricks install and restore instructions: https://pybricks.com/learn/getting-started/install-pybricks/
 - Pybricks legal page: https://pybricks.com/legal/
@@ -142,4 +143,3 @@ Before adding a compatibility feature, confirm:
 - Can the feature run in simulated mode first?
 - Are generated files clearly labeled as generated compatibility code?
 - Are names/logos used only for identification?
-
