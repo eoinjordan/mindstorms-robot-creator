@@ -22,11 +22,13 @@ For kids and first-run debugging, generated code should normally be wrapped in a
 
 - SPIKE Prime / Robot Inventor / supported hubs running Pybricks.
 - Best when firmware flashing is acceptable.
+- Generate compatible Python only; do not bundle Pybricks firmware or imply this project is Pybricks.
 
 `spike-stock`
 
 - Stock LEGO SPIKE protocol command path.
 - Use for classroom/shared kit compatibility.
+- Keep this path available when firmware flashing is not acceptable.
 
 `nxt-direct`
 

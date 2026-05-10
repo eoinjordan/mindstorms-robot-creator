@@ -150,6 +150,8 @@ Or in `.vscode/mcp.json`:
 
 ---
 
-## License
+## Compatibility And License
 
-MIT. See [LICENSE](LICENSE).
+This is an independent project. It is not an official LEGO or Pybricks product, and it does not bundle Pybricks firmware, LEGO firmware, or paid third-party coding tools. It generates compatible code and handoff steps for user-selected runtimes.
+
+Project code is MIT licensed. See [LICENSE](LICENSE), [NOTICE.md](NOTICE.md), and [Compatibility And Licensing](docs/COMPATIBILITY_AND_LICENSING.md).

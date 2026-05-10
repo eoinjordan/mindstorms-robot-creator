@@ -20,6 +20,7 @@ Use these docs as the agent-facing source of truth while building this repo.
 - `OFFICIAL_LEGO_CLIENT.md`: how agents should use the official LEGO client as a status/handoff bridge.
 - `DATA_AND_MODELS.md`: probe data, labels, model strategy, Edge Impulse path, and ExecuTorch path.
 - `CODE_GENERATION.md`: generated-code targets, required safety blocks, and build delegation.
+- `COMPATIBILITY_AND_LICENSING.md`: what the project is/is not, Pybricks/LEGO boundaries, and compatibility rules.
 - `COMMUNITY_NETWORK.md`: profile bundles, trust model, licensing, and matching flow.
 - `ROADMAP.md`: milestone order and acceptance criteria.
 

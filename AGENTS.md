@@ -24,8 +24,9 @@ Local robotics project for LEGO MINDSTORMS (RCX, NXT, EV3, SPIKE Prime, Robot In
 8. `docs/ADAPTERS.md` - before touching hardware adapters
 9. `docs/DATA_AND_MODELS.md` - before changing schemas or classifier logic
 10. `docs/CODE_GENERATION.md` - before adding code generation templates
-11. `docs/ROADMAP.md` - milestone order
-12. `docs/OFFICIAL_LEGO_CLIENT.md` - before integrating the official LEGO client
+11. `docs/COMPATIBILITY_AND_LICENSING.md` - before adding third-party compatibility, firmware, deploy, or branding behavior
+12. `docs/ROADMAP.md` - milestone order
+13. `docs/OFFICIAL_LEGO_CLIENT.md` - before integrating the official LEGO client
 
 ## Commands
 
@@ -89,6 +90,7 @@ PowerShell may block `npm.ps1` on this machine. Use direct `node` commands unles
 - Never drive into a hard stop without cutoff logic.
 - Keep network services bound to `127.0.0.1`.
 - Do not upload probe data, photos, or model artifacts to cloud services without explicit user request and configured credentials.
+- Do not bundle third-party firmware, proprietary assets, or paid coding features without an explicit license review.
 - Do not modify `PDF_manuals/` unless asked.
 - Do not bypass profile capability checks in generated code.
 - Treat the official LEGO client as a manual handoff surface unless GUI automation is explicitly requested.
