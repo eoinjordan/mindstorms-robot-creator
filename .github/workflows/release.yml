@@ -243,40 +243,42 @@ jobs:
         run: |
           set -euo pipefail
 
-          check_assets() {
-            gh release view "$GITHUB_REF_NAME" --json assets > release-assets.json
-            python3 - <<'PY'
-          import json
-          import sys
+          required_assets=(
+            "builder-tab.png"
+            "code-tab.png"
+            "connect-tab.png"
+            "full-page.png"
+            "voice-tab.png"
+            "mindstorms-robot-creator-setup.exe"
+            "mindstorms-robot-creator-portable.exe"
+            "mindstorms-robot-creator-x64.dmg"
+            "mindstorms-robot-creator-arm64.dmg"
+            "mindstorms-robot-creator.AppImage"
+            "mindstorms-ai-creator-latest-debug.apk"
+          )
 
-          data = json.load(open("release-assets.json", encoding="utf-8"))
-          names = sorted(asset["name"] for asset in data.get("assets", []))
-          required = [
-              "builder-tab.png",
-              "code-tab.png",
-              "connect-tab.png",
-              "full-page.png",
-              "voice-tab.png",
-              "mindstorms-robot-creator-setup.exe",
-              "mindstorms-robot-creator-portable.exe",
-              "mindstorms-robot-creator-x64.dmg",
-              "mindstorms-robot-creator-arm64.dmg",
-              "mindstorms-robot-creator.AppImage",
-              "mindstorms-ai-creator-latest-debug.apk",
-          ]
-          missing = [name for name in required if name not in names]
-          if missing:
-              print("Missing release assets:")
-              for name in missing:
-                  print(f"- {name}")
-              print("Current assets:")
-              for name in names:
-                  print(f"- {name}")
-              sys.exit(1)
-          print("Release assets verified:")
-          for name in required:
-              print(f"- {name}")
-          PY
+          check_assets() {
+            gh release view "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json assets \
+              --jq '.assets[].name' > release-assets.txt
+
+            missing=0
+            for asset in "${required_assets[@]}"; do
+              if ! grep -Fxq "$asset" release-assets.txt; then
+                echo "Missing release asset: $asset"
+                missing=1
+              fi
+            done
+
+            if [ "$missing" -ne 0 ]; then
+              echo "Current assets:"
+              sed 's/^/- /' release-assets.txt
+              return 1
+            fi
+
+            echo "Release assets verified:"
+            printf -- "- %s\n" "${required_assets[@]}"
           }
 
           for attempt in $(seq 1 18); do
