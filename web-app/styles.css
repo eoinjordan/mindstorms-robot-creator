@@ -182,6 +182,11 @@ body {
   flex: 1; display: flex; flex-direction: column; min-height: 320px;
   border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm);
 }
+#blocklyDiv {
+  display: none; flex: 1; min-height: 380px;
+  border: 1px solid var(--line); box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
+}
 .CodeMirror { height: 100% !important; font-size: 13px; font-family: "Cascadia Code", "Fira Code", "Consolas", monospace; flex: 1; }
 .status-bar { font-size: 12px; padding: 4px 8px; border-radius: 4px; color: var(--muted); min-height: 22px; }
 .status-bar.ok    { color: var(--ok); }

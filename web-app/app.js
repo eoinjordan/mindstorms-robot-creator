@@ -151,11 +151,13 @@ const GEN_META = {
 const FAMILY_TARGETS = {
   "robot-inventor": [
     { value: "lego-stock-python", label: "LEGO MINDSTORMS App (Python)" },
-    { value: "pybricks-python",   label: "Pybricks (Python)" }
+    { value: "pybricks-python",   label: "Pybricks (Python)" },
+    { value: "blockly-python",    label: "Blockly (Visual)" }
   ],
   "spike-prime": [
     { value: "lego-stock-python", label: "LEGO SPIKE App (Python)" },
-    { value: "pybricks-python",   label: "Pybricks (Python)" }
+    { value: "pybricks-python",   label: "Pybricks (Python)" },
+    { value: "blockly-python",    label: "Blockly (Visual)" }
   ],
   "ev3": [
     { value: "pybricks-ev3",   label: "Pybricks EV3 (Python)" },
@@ -343,6 +345,265 @@ function generateCode(profile, target, intent, customCode) {
   if (target === "nxt-python")      return generateNxtPythonCode(profile, intent, customCode);
   if (target === "rcx-nqc")         return generateRcxNqcCode(profile, intent, customCode);
   return generateLegoStockCode(profile, intent, customCode);
+}
+
+// ─── Blockly Integration ──────────────────────────────────────────────────────
+
+let blocklyWorkspace = null;
+
+function isBlocklyTarget() {
+  return el("targetSel")?.value === "blockly-python";
+}
+
+// Load Blockly scripts on demand (avoids ~1 MB blocking load on startup)
+function loadBlocklyScripts() {
+  return new Promise((resolve, reject) => {
+    if (window.Blockly) { resolve(); return; }
+    const urls = [
+      "https://unpkg.com/blockly@9.3.3/blockly_compressed.js",
+      "https://unpkg.com/blockly@9.3.3/msg/en.js",
+      "https://unpkg.com/blockly@9.3.3/blocks_compressed.js",
+      "https://unpkg.com/blockly@9.3.3/python_compressed.js"
+    ];
+    function loadNext(i) {
+      if (i >= urls.length) { resolve(); return; }
+      const s = document.createElement("script");
+      s.src = urls[i];
+      s.onload = () => loadNext(i + 1);
+      s.onerror = () => reject(new Error("Failed to load Blockly: " + urls[i]));
+      document.head.appendChild(s);
+    }
+    loadNext(0);
+  });
+}
+
+const MS_BLOCKLY_BLOCKS = [
+  {
+    "type": "ms_beep",
+    "message0": "hub beep  frequency %1 Hz  duration %2 ms",
+    "args0": [
+      { "type": "field_number", "name": "FREQ", "value": 440, "min": 100, "max": 5000 },
+      { "type": "field_number", "name": "DUR",  "value": 500, "min": 50,  "max": 5000 }
+    ],
+    "previousStatement": null, "nextStatement": null,
+    "colour": "#0c7a71", "tooltip": "Make the hub beep"
+  },
+  {
+    "type": "ms_hub_light",
+    "message0": "hub status light %1",
+    "args0": [{ "type": "field_dropdown", "name": "COLOR", "options": [
+      ["green","GREEN"],["red","RED"],["yellow","YELLOW"],["blue","BLUE"],["white","WHITE"],["off","BLACK"]
+    ]}],
+    "previousStatement": null, "nextStatement": null, "colour": "#0c7a71"
+  },
+  {
+    "type": "ms_motor_run",
+    "message0": "motor port %1  speed %2 %%  for %3 sec",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "SPEED", "value": 30,  "min": -100, "max": 100 },
+      { "type": "field_number", "name": "SECS",  "value": 1,   "min": 0.1,  "max": 30  }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "ms_motor_degrees",
+    "message0": "motor port %1  turn %2 degrees  speed %3 %%",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] },
+      { "type": "field_number", "name": "DEG",   "value": 90,  "min": -720, "max": 720 },
+      { "type": "field_number", "name": "SPEED",  "value": 30,  "min": -100, "max": 100 }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "ms_motor_stop",
+    "message0": "motor port %1  stop",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"],["C","C"],["D","D"],["E","E"],["F","F"]] }],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "ms_wait",
+    "message0": "wait %1 seconds",
+    "args0": [{ "type": "field_number", "name": "SECS", "value": 1, "min": 0.1, "max": 60 }],
+    "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
+  },
+  {
+    "type": "ms_print",
+    "message0": "print %1",
+    "args0": [{ "type": "field_input", "name": "TEXT", "text": "Hello" }],
+    "previousStatement": null, "nextStatement": null, "colour": "#607d8b"
+  }
+];
+
+const BLOCKLY_TOOLBOX = {
+  "kind": "categoryToolbox",
+  "contents": [
+    { "kind": "category", "name": "Hub", "colour": "#0c7a71",
+      "contents": [
+        { "kind": "block", "type": "ms_beep" },
+        { "kind": "block", "type": "ms_hub_light" }
+      ]
+    },
+    { "kind": "category", "name": "Motors", "colour": "#b45309",
+      "contents": [
+        { "kind": "block", "type": "ms_motor_run" },
+        { "kind": "block", "type": "ms_motor_degrees" },
+        { "kind": "block", "type": "ms_motor_stop" }
+      ]
+    },
+    { "kind": "category", "name": "Control", "colour": "#5c6bc0",
+      "contents": [
+        { "kind": "block", "type": "ms_wait" },
+        { "kind": "block", "type": "controls_repeat_ext",
+          "inputs": { "TIMES": { "shadow": { "type": "math_number", "fields": { "NUM": 3 } } } }
+        },
+        { "kind": "block", "type": "controls_whileUntil" }
+      ]
+    },
+    { "kind": "category", "name": "Debug", "colour": "#607d8b",
+      "contents": [{ "kind": "block", "type": "ms_print" }]
+    },
+    { "kind": "sep" },
+    { "kind": "category", "name": "Math", "colour": "%{BKY_MATH_HUE}",
+      "contents": [
+        { "kind": "block", "type": "math_number" },
+        { "kind": "block", "type": "math_arithmetic" }
+      ]
+    },
+    { "kind": "category", "name": "Variables", "colour": "%{BKY_VARIABLES_HUE}", "custom": "VARIABLE" }
+  ]
+};
+
+function registerBlocklyGenerators() {
+  const Py = Blockly.Python;
+  Py["ms_beep"]          = b => `hub.speaker.beep(frequency=${b.getFieldValue("FREQ")}, duration=${parseFloat(b.getFieldValue("DUR")) / 1000})\n`;
+  Py["ms_hub_light"]     = b => { const c = b.getFieldValue("COLOR"); return c === "BLACK" ? `hub.status_light.off()\n` : `hub.status_light.on(Color.${c})\n`; };
+  Py["ms_motor_run"]     = b => `Motor('${b.getFieldValue("PORT")}').run_for_seconds(${b.getFieldValue("SECS")}, speed=${b.getFieldValue("SPEED")})\n`;
+  Py["ms_motor_degrees"] = b => `Motor('${b.getFieldValue("PORT")}').run_for_degrees(${b.getFieldValue("DEG")}, speed=${b.getFieldValue("SPEED")})\n`;
+  Py["ms_motor_stop"]    = b => `Motor('${b.getFieldValue("PORT")}').stop()\n`;
+  Py["ms_wait"]          = b => `wait_for_seconds(${b.getFieldValue("SECS")})\n`;
+  Py["ms_print"]         = b => `print("${b.getFieldValue("TEXT").replace(/"/g, '\\"')}")\n`;
+}
+
+function initBlockly() {
+  if (blocklyWorkspace || !window.Blockly) return;
+  Blockly.defineBlocksWithJsonArray(MS_BLOCKLY_BLOCKS);
+  registerBlocklyGenerators();
+  blocklyWorkspace = Blockly.inject("blocklyDiv", {
+    toolbox: BLOCKLY_TOOLBOX,
+    grid: { spacing: 20, length: 3, colour: "#1e3040", snap: true },
+    trashcan: true,
+    zoom: { controls: true, wheel: true, startScale: 1.0 }
+  });
+  window._blocklyWs = blocklyWorkspace; // expose for debugging
+}
+
+function buildBlocklyIntentXml(profile, intent) {
+  const motors = Object.entries(profile.ports || {}).filter(([, p]) => p.kind === "motor");
+  const drives = motors.filter(([, p]) => /drive|wheel/.test(p.role));
+  const arms   = motors.filter(([, p]) => /arm|lift|wave|action|body/.test(p.role));
+  function chain(defs, x = 30, y = 30) {
+    if (!defs.length) return "";
+    function build(i) {
+      if (i >= defs.length) return "";
+      const d = defs[i];
+      const fields = Object.entries(d.fields || {}).map(([k, v]) => `<field name="${k}">${v}</field>`).join("");
+      const next   = build(i + 1);
+      const xy     = i === 0 ? ` x="${x}" y="${y}"` : "";
+      return `<block type="${d.type}"${xy}>${fields}${next ? `<next>${next}</next>` : ""}</block>`;
+    }
+    return build(0);
+  }
+  let defs = [];
+  if (intent === "beep_hello") {
+    defs = [
+      { type: "ms_beep",      fields: { FREQ: 440, DUR: 500 } },
+      { type: "ms_hub_light", fields: { COLOR: "GREEN" } },
+      { type: "ms_wait",      fields: { SECS: 1 } },
+      { type: "ms_hub_light", fields: { COLOR: "BLACK" } }
+    ];
+  } else if (intent === "safe_probe") {
+    defs = motors.flatMap(([port, p]) => [
+      { type: "ms_print",     fields: { TEXT: `Testing ${p.role} port ${port}` } },
+      { type: "ms_motor_run", fields: { PORT: port, SPEED:  30, SECS: 1 } },
+      { type: "ms_wait",      fields: { SECS: 0.5 } },
+      { type: "ms_motor_run", fields: { PORT: port, SPEED: -30, SECS: 1 } },
+      { type: "ms_wait",      fields: { SECS: 0.5 } }
+    ]);
+    defs.push({ type: "ms_beep", fields: { FREQ: 800, DUR: 300 } });
+  } else if (intent === "drive_forward") {
+    const targets = drives.length ? drives : motors.slice(0, 2);
+    defs = [
+      ...targets.map(([port]) => ({ type: "ms_motor_run", fields: { PORT: port, SPEED: 30, SECS: 2 } })),
+      { type: "ms_beep", fields: { FREQ: 500, DUR: 300 } }
+    ];
+  } else if (intent === "wave") {
+    const target = arms.length ? arms[0] : motors[0];
+    if (target) {
+      const [port] = target;
+      defs = [
+        { type: "ms_motor_degrees", fields: { PORT: port, DEG:  90, SPEED: 30 } },
+        { type: "ms_wait",          fields: { SECS: 0.2 } },
+        { type: "ms_motor_degrees", fields: { PORT: port, DEG: -90, SPEED: 30 } },
+        { type: "ms_wait",          fields: { SECS: 0.2 } }
+      ];
+    } else {
+      defs = [{ type: "ms_beep", fields: { FREQ: 440, DUR: 500 } }];
+    }
+  } else {
+    defs = [{ type: "ms_beep", fields: { FREQ: 440, DUR: 300 } }, { type: "ms_wait", fields: { SECS: 1 } }];
+  }
+  return `<xml xmlns="https://developers.google.com/blockly/xml">${chain(defs)}</xml>`;
+}
+
+function loadBlocklyIntent(profile, intent) {
+  if (!blocklyWorkspace) return;
+  blocklyWorkspace.clear();
+  try {
+    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(buildBlocklyIntentXml(profile, intent)), blocklyWorkspace);
+    blocklyWorkspace.scrollCenter();
+  } catch (e) { console.warn("Blockly XML load error:", e); }
+}
+
+function getBlocklyPython(profile) {
+  if (!blocklyWorkspace || !window.Blockly) return "";
+  const body = Blockly.Python.workspaceToCode(blocklyWorkspace);
+  const header = [
+    `# ${profile.name} — ${profile.kit || "Robot Inventor 51515"}`,
+    `# Target: blockly-python (Blockly visual → Python)`,
+    `# Generated by Mindstorms Robot Creator`,
+    ``,
+    `from mindstorms import MSHub, Motor, MotorPair, ColorSensor, DistanceSensor, App`,
+    `from mindstorms.control import wait_for_seconds, wait_until, Timer`,
+    `from mindstorms.color import BLACK, WHITE, RED, GREEN, BLUE, YELLOW`,
+    `import math`,
+    ``,
+    `hub = MSHub()`,
+    ``
+  ].join("\n");
+  return header + body;
+}
+
+async function showBlocklyEditor() {
+  el("editorWrap").style.display = "none";
+  const div = el("blocklyDiv");
+  div.style.display = "flex";
+  setCodeStatus("Loading Blockly...");
+  try {
+    await loadBlocklyScripts();
+    initBlockly();
+    if (blocklyWorkspace) blocklyWorkspace.resize();
+    setCodeStatus("");
+  } catch (e) {
+    setCodeStatus("Could not load Blockly (offline?)", true);
+  }
+}
+
+function showTextEditor() {
+  el("blocklyDiv").style.display = "none";
+  el("editorWrap").style.display = "";
+  if (editor) editor.refresh();
 }
 
 // ─── EV3 Pybricks code generation ─────────────────────────────────────────────
@@ -1121,6 +1382,11 @@ function doGenerate() {
   if (!profile) { setCodeStatus("Select a robot first", true); return; }
   const target = el("targetSel").value;
   const intent = el("intentSel").value;
+  if (target === "blockly-python") {
+    loadBlocklyIntent(profile, intent);
+    setCodeStatus(`Loaded ${intent} blocks for ${profile.name}`);
+    return;
+  }
   const customCode = intent === "custom" ? editor.getValue() : null;
   const src = generateCode(profile, target, intent, customCode);
   editor.setValue(src);
@@ -1128,7 +1394,7 @@ function doGenerate() {
 }
 
 async function doGenerateFromServer() {
-  if (!state.serverOk) { doGenerate(); return; }
+  if (!state.serverOk || isBlocklyTarget()) { doGenerate(); return; }
   const profile = selectedProfile();
   if (!profile) { setCodeStatus("Select a robot first", true); return; }
   try {
@@ -1148,6 +1414,18 @@ async function doGenerateFromServer() {
 
 async function doDownloadLms() {
   const profile = selectedProfile();
+  if (isBlocklyTarget()) {
+    const src = getBlocklyPython(profile);
+    if (!src.trim()) { setCodeStatus("Generate blocks first, then download", true); return; }
+    const baseName = profile ? `${profile.id}-blockly` : "blockly-program";
+    const blob = new Blob([src], { type: "text/plain" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = `${baseName}.py`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    setCodeStatus(`Downloaded ${baseName}.py`);
+    return;
+  }
   const src = editor.getValue().trim();
   if (!src) { setCodeStatus("Generate or write code first", true); return; }
   const family  = profile ? profile.family : "robot-inventor";
@@ -1190,7 +1468,8 @@ async function doSaveToServer() {
 
 async function doRunViaUsb() {
   if (!hubSerial.connected) { appendTerminal("Hub not connected\n"); return; }
-  const src = editor.getValue().trim();
+  const profile = selectedProfile();
+  const src = isBlocklyTarget() ? getBlocklyPython(profile) : editor.getValue().trim();
   if (!src) { appendTerminal("No code to run\n"); return; }
   try {
     setCodeStatus("Running on hub...");
@@ -1422,7 +1701,7 @@ function switchTab(name) {
   document.querySelectorAll(".tab-panel").forEach(p => {
     p.classList.toggle("hidden", p.id !== `tab-${name}`);
   });
-  if (name === "code") editor && editor.refresh();
+  if (name === "code") { if (!isBlocklyTarget() && editor) editor.refresh(); }
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -1454,7 +1733,17 @@ document.addEventListener("DOMContentLoaded", () => {
   el("downloadLmsBtn").addEventListener("click", doDownloadLms);
   el("runUsbBtn").addEventListener("click", doRunViaUsb);
   el("saveLmsBtn").addEventListener("click", doSaveToServer);
-  el("targetSel").addEventListener("change", () => el("intentSel").disabled = false);
+  el("targetSel").addEventListener("change", async () => {
+    el("intentSel").disabled = false;
+    if (isBlocklyTarget()) {
+      await showBlocklyEditor();
+    } else {
+      showTextEditor();
+      const family = selectedProfile()?.family || "robot-inventor";
+      const meta = GEN_META[family] || GEN_META["robot-inventor"];
+      el("downloadLmsBtn").textContent = `\u2193 ${meta.extLabel}`;
+    }
+  });
 
   // Builder tab
   el("startBuilderBtn").addEventListener("click", doStartBuilder);
