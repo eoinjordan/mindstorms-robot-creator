@@ -26,25 +26,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Enable GitHub Pages (idempotent — safe to re-run)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Create Pages site with GitHub Actions as source.
-          # Returns 409 if already enabled — that's fine, ignore it.
-          HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/pages" \
-            -d '{"build_type":"workflow"}')
-          echo "Pages enable response: $HTTP"
-          if [ "$HTTP" != "201" ] && [ "$HTTP" != "409" ]; then
-            echo "Unexpected response $HTTP — failing"
-            exit 1
-          fi
-
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
