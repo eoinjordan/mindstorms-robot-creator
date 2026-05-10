@@ -14,18 +14,18 @@ The Android app is the operator console, data collector, and on-device inference
 
 ## Current Scaffold
 
-The active Android Studio app is under:
+The active Android Studio app may live outside this repo. Configure its location with:
 
-```text
-C:\Users\Eoin\AndroidStudioProjects\MindstormsAICreator
+```powershell
+$env:MINDSTORMS_ANDROID_PROJECT="<android-project-root>"
 ```
 
-The older repo scaffold under `android/robot-inventor-app` is reference material only. Gemini and other Android agents should build the Android Studio project above when the task is about the local APK.
+The repo scaffold under `android/robot-inventor-app` is reference material unless the task is specifically about the main repo release workflow.
 
-The public Android GitHub repo is a separate copy:
+The public Android GitHub repo is separate from this MCP/data repo:
 
 ```text
-C:\Users\Eoin\git\mindstorms-robot-creator-android
+https://github.com/eoinjordan/mindstorms-robot-creator-android
 ```
 
 Use that repo for GitHub Actions, releases, package `com.eoinedge.robotinventor`, and public APK publishing. Keep the two source trees intentionally synced when fixes are shared.
@@ -69,7 +69,7 @@ Current design update:
 - Detailed design notes are in `docs/ANDROID_BUILDER_DESIGN.md`.
 - Phone layout must not force a fixed sidebar; the fleet screen should stack on compact widths and use panes only on wide displays.
 
-Open `C:\Users\Eoin\AndroidStudioProjects\MindstormsAICreator` in Android Studio or run the Gradle wrapper there once JDK and Android SDK dependencies are available.
+Open `<android-project-root>` in Android Studio or run the Gradle wrapper there once JDK and Android SDK dependencies are available.
 
 Sync the 51515 profile asset from this repo to the active app:
 

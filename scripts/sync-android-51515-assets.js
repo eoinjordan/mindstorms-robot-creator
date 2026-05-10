@@ -15,8 +15,10 @@ const OUT = path.join(
   "assets",
   "robot_profiles_51515.json"
 );
-const ANDROID_STUDIO_PROJECT = process.env.MINDSTORMS_ANDROID_PROJECT ||
-  "C:\\Users\\Eoin\\AndroidStudioProjects\\MindstormsAICreator";
+const ANDROID_STUDIO_PROJECT =
+  process.env.MINDSTORMS_ANDROID_PROJECT ||
+  process.env.MINDSTORMS_ANDROID_APP_DIR ||
+  "";
 const ANDROID_STUDIO_OUT = path.join(
   ANDROID_STUDIO_PROJECT,
   "app",
@@ -63,7 +65,7 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, `${JSON.stringify(profiles, null, 2)}\n`);
 console.log(path.relative(ROOT, OUT));
 
-if (fs.existsSync(ANDROID_STUDIO_PROJECT)) {
+if (ANDROID_STUDIO_PROJECT && fs.existsSync(ANDROID_STUDIO_PROJECT)) {
   fs.mkdirSync(path.dirname(ANDROID_STUDIO_OUT), { recursive: true });
   fs.writeFileSync(ANDROID_STUDIO_OUT, `${JSON.stringify(profiles, null, 2)}\n`);
   console.log(ANDROID_STUDIO_OUT);

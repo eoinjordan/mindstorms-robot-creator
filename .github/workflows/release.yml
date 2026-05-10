@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       build_android:
-        description: 'Build Android APK (requires android/MindstormsAICreator in repo)'
+        description: 'Build repo-side Android APK from android/robot-inventor-app'
         type: boolean
         default: true
 
@@ -16,7 +16,7 @@ permissions:
   id-token: write   # npm provenance
 
 jobs:
-  # ── 1. Run tests ──────────────────────────────────────────────────────────────
+  # 1. Run tests
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -29,7 +29,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
 
-  # ── 2. UI Screenshots ─────────────────────────────────────────────────────────
+  # 2. UI screenshots
   # Serves the web-app locally, opens every tab in headless Chromium via
   # Playwright, and saves PNG screenshots for the README and release artifacts.
   screenshot:
@@ -66,7 +66,7 @@ jobs:
         with:
           files: screencaps/ci/*.png
 
-  # ── 3. Windows desktop app (Electron) ─────────────────────────────────────────
+  # 3. Windows desktop app
   build-windows:
     name: Build Windows (exe + portable)
     needs: [test, screenshot]
@@ -107,7 +107,7 @@ jobs:
             dist-electron/*.exe
             dist-electron/*.msi
 
-  # ── 4. macOS desktop app (Electron) ───────────────────────────────────────────
+  # 4. macOS desktop app
   build-mac:
     name: Build macOS (.dmg)
     needs: [test, screenshot]
@@ -143,7 +143,7 @@ jobs:
         with:
           files: dist-electron/*.dmg
 
-  # ── 5. Linux desktop app (Electron) ───────────────────────────────────────────
+  # 5. Linux desktop app
   build-linux:
     name: Build Linux (.AppImage + .deb)
     needs: [test, screenshot]
@@ -181,7 +181,7 @@ jobs:
             dist-electron/*.AppImage
             dist-electron/*.deb
 
-  # ── 6. Android APK ────────────────────────────────────────────────────────────
+  # 6. Android APK
   # Builds an unsigned release APK from android/robot-inventor-app.
   # The APK is attached to the GitHub Release and is also the artifact
   # submitted to F-Droid (which re-builds from source itself).
@@ -229,9 +229,9 @@ jobs:
         with:
           files: android/robot-inventor-app/app/build/outputs/apk/release/*.apk
 
-  # ── 7. Publish to npm ─────────────────────────────────────────────────────────
+  # 7. Publish to npm
   # Publishes the MCP server package to npmjs.org on every version tag.
-  # Requires NPM_TOKEN secret set in repo Settings → Secrets.
+  # Requires NPM_TOKEN secret set in repo Settings > Secrets.
   publish-npm:
     name: Publish to npm
     needs: [build-windows, build-linux]

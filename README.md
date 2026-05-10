@@ -87,7 +87,7 @@ npm run electron:build:linux  # Linux
 
 ### Android
 
-Install the current APK from [this release download](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk). The APK currently published there was built from `C:\Users\Eoin\AndroidStudioProjects\MindstormsAICreator`.
+Install the current APK from [this release download](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk). Artifact metadata is tracked in `releases/android/README.md`.
 
 The public Android repo is [mindstorms-robot-creator-android](https://github.com/eoinjordan/mindstorms-robot-creator-android), package `com.eoinedge.robotinventor`.
 

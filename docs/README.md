@@ -16,7 +16,7 @@ Use these docs as the agent-facing source of truth while building this repo.
 - `ADAPTERS.md`: hardware adapter contract and per-family implementation notes.
 - `ANDROID_APP.md`: Android app architecture, screens, transport interface, and data flow.
 - `ANDROID_BUILDER_DESIGN.md`: current Android screen design for builder sessions and tests.
-- `ANDROID_STUDIO_PROJECT.md`: canonical Android Studio project path for Gemini and Android agents.
+- `ANDROID_STUDIO_PROJECT.md`: Android project location conventions and environment variables.
 - `OFFICIAL_LEGO_CLIENT.md`: how agents should use the official LEGO client as a status/handoff bridge.
 - `DATA_AND_MODELS.md`: probe data, labels, model strategy, Edge Impulse path, and ExecuTorch path.
 - `CODE_GENERATION.md`: generated-code targets, required safety blocks, and build delegation.

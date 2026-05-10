@@ -4,8 +4,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const repoRoot = path.resolve(__dirname, "..");
-const defaultProject = "C:\\Users\\Eoin\\AndroidStudioProjects\\MindstormsAICreator";
-const androidProject = process.env.MINDSTORMS_ANDROID_PROJECT || defaultProject;
+const androidProject =
+  process.env.MINDSTORMS_ANDROID_PROJECT ||
+  process.env.MINDSTORMS_ANDROID_APP_DIR ||
+  "";
 const targetDocs = path.join(androidProject, "docs");
 
 const designSource = path.join(repoRoot, "docs", "ANDROID_BUILDER_DESIGN.md");
@@ -33,7 +35,7 @@ function upsertSection(filePath, section) {
 
 function main() {
   if (!fs.existsSync(androidProject)) {
-    throw new Error(`Android project not found: ${androidProject}`);
+    throw new Error("Android project not found. Set MINDSTORMS_ANDROID_PROJECT or MINDSTORMS_ANDROID_APP_DIR.");
   }
   fs.mkdirSync(targetDocs, { recursive: true });
   fs.copyFileSync(designSource, designTarget);
@@ -54,7 +56,7 @@ Immediate build order:
 Repo reference:
 
 \`\`\`text
-${repoRoot}
+Run this script from the MCP repo root, or set MINDSTORMS_MCP_REPO_DIR in local automation.
 \`\`\`
 ${markerEnd}`;
 
