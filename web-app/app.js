@@ -1151,9 +1151,14 @@ function renderCbSavedList() {
 }
 
 function buildBlocklyIntentXml(profile, intent) {
-  const motors = Object.entries(profile.ports || {}).filter(([, p]) => p.kind === "motor");
-  const drives = motors.filter(([, p]) => /drive|wheel/.test(p.role));
-  const arms   = motors.filter(([, p]) => /arm|lift|wave|action|body/.test(p.role));
+  const motors  = Object.entries(profile.ports || {}).filter(([, p]) => p.kind === "motor");
+  const sensors = Object.entries(profile.ports || {}).filter(([, p]) => p.kind === "sensor");
+  const drives  = motors.filter(([, p]) => /drive|wheel/.test(p.role));
+  const arms    = motors.filter(([, p]) => /arm|lift|wave|action|body/.test(p.role));
+  const colors  = sensors.filter(([, p]) => /color/.test(p.part || "") || /color/.test(p.role));
+  const dists   = sensors.filter(([, p]) => /distance|ultrasonic/.test(p.part || "") || /dist/.test(p.role));
+
+  // Builds a chain of statement blocks (next-connected) from x,y
   function chain(defs, x = 30, y = 30) {
     if (!defs.length) return "";
     function build(i) {
@@ -1166,46 +1171,86 @@ function buildBlocklyIntentXml(profile, intent) {
     }
     return build(0);
   }
-  let defs = [];
+
+  // Helper: wrap a chain inside controls_repeat_ext (N times)
+  function repeatBlock(times, innerDefs, x = 30, y = 30) {
+    const inner = chain(innerDefs);
+    return `<block type="controls_repeat_ext" x="${x}" y="${y}">
+      <value name="TIMES"><shadow type="math_number"><field name="NUM">${times}</field></shadow></value>
+      ${inner ? `<statement name="DO">${inner}</statement>` : ""}
+    </block>`;
+  }
+
+  let xml = "";
+
   if (intent === "beep_hello") {
-    defs = [
+    const defs = [
       { type: "ms_beep",      fields: { FREQ: 440, DUR: 500 } },
       { type: "ms_hub_light", fields: { COLOR: "GREEN" } },
       { type: "ms_wait",      fields: { SECS: 1 } },
-      { type: "ms_hub_light", fields: { COLOR: "BLACK" } }
+      { type: "ms_hub_light_off", fields: {} }
     ];
+    xml = chain(defs);
+
   } else if (intent === "safe_probe") {
-    defs = motors.flatMap(([port, p]) => [
-      { type: "ms_print",     fields: { TEXT: `Testing ${p.role} port ${port}` } },
-      { type: "ms_motor_run", fields: { PORT: port, SPEED:  30, SECS: 1 } },
-      { type: "ms_wait",      fields: { SECS: 0.5 } },
-      { type: "ms_motor_run", fields: { PORT: port, SPEED: -30, SECS: 1 } },
-      { type: "ms_wait",      fields: { SECS: 0.5 } }
-    ]);
-    defs.push({ type: "ms_beep", fields: { FREQ: 800, DUR: 300 } });
-  } else if (intent === "drive_forward") {
-    const targets = drives.length ? drives : motors.slice(0, 2);
-    defs = [
-      ...targets.map(([port]) => ({ type: "ms_motor_run", fields: { PORT: port, SPEED: 30, SECS: 2 } })),
-      { type: "ms_beep", fields: { FREQ: 500, DUR: 300 } }
+    const defs = [
+      { type: "ms_hub_light", fields: { COLOR: "YELLOW" } },
+      ...motors.flatMap(([port, p]) => [
+        { type: "ms_print",     fields: { TEXT: `Testing ${p.role} port ${port}` } },
+        { type: "ms_motor_run", fields: { PORT: port, SPEED:  30, SECS: 1 } },
+        { type: "ms_wait",      fields: { SECS: 0.5 } },
+        { type: "ms_motor_run", fields: { PORT: port, SPEED: -30, SECS: 1 } },
+        { type: "ms_wait",      fields: { SECS: 0.5 } }
+      ]),
+      { type: "ms_hub_light", fields: { COLOR: "GREEN" } },
+      { type: "ms_beep",      fields: { FREQ: 800, DUR: 300 } },
+      { type: "ms_print",     fields: { TEXT: "Probe complete" } }
     ];
+    xml = chain(defs);
+
+  } else if (intent === "drive_forward") {
+    const targets = drives.length >= 2 ? drives : (motors.length >= 2 ? motors.slice(0, 2) : motors.slice(0, 1));
+    if (targets.length >= 2) {
+      // Use MotorPair move block
+      const [l, r] = [targets[0][0], targets[1][0]];
+      const defs = [
+        { type: "ms_pair_move",  fields: { LEFT: l, RIGHT: r, SPEED: 50, SECS: 2 } },
+        { type: "ms_beep",       fields: { FREQ: 500, DUR: 200 } }
+      ];
+      xml = chain(defs);
+    } else if (targets.length === 1) {
+      const defs = [
+        { type: "ms_motor_run", fields: { PORT: targets[0][0], SPEED: 30, SECS: 2 } },
+        { type: "ms_beep",      fields: { FREQ: 500, DUR: 200 } }
+      ];
+      xml = chain(defs);
+    } else {
+      xml = chain([{ type: "ms_beep", fields: { FREQ: 440, DUR: 500 } }]);
+    }
+
   } else if (intent === "wave") {
-    const target = arms.length ? arms[0] : motors[0];
+    const target = arms.length ? arms[0] : (motors.length ? motors[0] : null);
     if (target) {
       const [port] = target;
-      defs = [
-        { type: "ms_motor_degrees", fields: { PORT: port, DEG:  90, SPEED: 30 } },
+      // Use repeat(3) { forward 90°, wait, back 90°, wait }
+      xml = repeatBlock(3, [
+        { type: "ms_motor_degrees", fields: { PORT: port, DEG:  90, SPEED: 40 } },
         { type: "ms_wait",          fields: { SECS: 0.2 } },
-        { type: "ms_motor_degrees", fields: { PORT: port, DEG: -90, SPEED: 30 } },
+        { type: "ms_motor_degrees", fields: { PORT: port, DEG: -90, SPEED: 40 } },
         { type: "ms_wait",          fields: { SECS: 0.2 } }
-      ];
+      ]);
+      // Add a beep after the repeat block
+      const afterY = 30 + 3 * 82 + 40; // rough pixel offset
+      xml += chain([{ type: "ms_beep", fields: { FREQ: 600, DUR: 200 } }], 30, afterY);
     } else {
-      defs = [{ type: "ms_beep", fields: { FREQ: 440, DUR: 500 } }];
+      xml = chain([{ type: "ms_beep", fields: { FREQ: 440, DUR: 500 } }]);
     }
+
   } else {
-    defs = [{ type: "ms_beep", fields: { FREQ: 440, DUR: 300 } }, { type: "ms_wait", fields: { SECS: 1 } }];
+    xml = chain([{ type: "ms_beep", fields: { FREQ: 440, DUR: 300 } }, { type: "ms_wait", fields: { SECS: 1 } }]);
   }
-  return `<xml xmlns="https://developers.google.com/blockly/xml">${chain(defs)}</xml>`;
+
+  return `<xml xmlns="https://developers.google.com/blockly/xml">${xml}</xml>`;
 }
 
 function loadBlocklyIntent(profile, intent) {
@@ -1248,6 +1293,10 @@ async function showBlocklyEditor() {
     initBlockly();
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (blocklyWorkspace) Blockly.svgResize(blocklyWorkspace);
+      // Auto-populate with the current intent immediately after init
+      const profile = selectedProfile();
+      const intent  = el("intentSel").value;
+      if (profile && intent) loadBlocklyIntent(profile, intent);
     }));
     setCodeStatus("");
   } catch (e) {
@@ -2553,6 +2602,37 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
 
+  // Settings drawer
+  const settingsBtn   = el("settingsBtn");
+  const settingsDrawer = el("settingsDrawer");
+  const settingsBackdrop = el("settingsBackdrop");
+  function openSettings() {
+    settingsDrawer.classList.remove("hidden");
+    settingsBackdrop.classList.remove("hidden");
+  }
+  function closeSettings() {
+    settingsDrawer.classList.add("hidden");
+    settingsBackdrop.classList.add("hidden");
+  }
+  settingsBtn?.addEventListener("click", openSettings);
+  el("aiSettingsShortcut")?.addEventListener("click", openSettings);
+  el("settingsCloseBtn")?.addEventListener("click", closeSettings);
+  settingsBackdrop?.addEventListener("click", closeSettings);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !settingsDrawer.classList.contains("hidden")) closeSettings();
+  });
+
+  // Sidebar collapse toggle
+  const fleetSidebar = el("fleetSidebar");
+  el("sidebarToggle")?.addEventListener("click", () => {
+    fleetSidebar.classList.toggle("collapsed");
+    const isCollapsed = fleetSidebar.classList.contains("collapsed");
+    el("sidebarToggle").title = isCollapsed ? "Expand sidebar" : "Collapse sidebar";
+    // Trigger Blockly resize if needed
+    if (isBlocklyTarget() && blocklyWorkspace)
+      setTimeout(() => Blockly.svgResize(blocklyWorkspace), 250);
+  });
+
   // Server
   el("refreshBtn").addEventListener("click", () => {
     state.serverUrl = el("serverUrl").value.trim().replace(/\/$/, "");
@@ -2574,6 +2654,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const family = selectedProfile()?.family || "robot-inventor";
       const meta = GEN_META[family] || GEN_META["robot-inventor"];
       el("downloadLmsBtn").textContent = `\u2193 ${meta.extLabel}`;
+    }
+  });
+
+  // When intent changes while in Blockly mode, auto-reload blocks
+  el("intentSel").addEventListener("change", () => {
+    if (!isBlocklyTarget() || !blocklyWorkspace) return;
+    const profile = selectedProfile();
+    const intent  = el("intentSel").value;
+    if (profile && intent !== "custom") {
+      loadBlocklyIntent(profile, intent);
+      setCodeStatus(`Loaded "${intent}" blocks for ${profile.name}`);
     }
   });
 

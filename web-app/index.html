@@ -100,17 +100,50 @@
     <div class="topbar-right">
       <a class="dl-btn" href="https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-robot-creator-setup.exe" title="Download Windows installer">&#8595; Windows</a>
       <a class="dl-btn" href="https://github.com/eoinjordan/mindstorms-robot-creator-android/releases/latest/download/app-release.apk" title="Download Android APK">&#8595; Android APK</a>
-      <label class="inline-label">Server
-        <input id="serverUrl" type="url" value="http://127.0.0.1:3095" spellcheck="false">
-      </label>
-      <button id="refreshBtn" type="button">Refresh</button>
+      <button id="settingsBtn" class="icon-btn" title="Settings (server, AI)">&#9881;</button>
     </div>
   </header>
 
+  <!-- Settings drawer -->
+  <div id="settingsBackdrop" class="settings-backdrop hidden"></div>
+  <aside id="settingsDrawer" class="settings-drawer hidden" role="dialog" aria-label="Settings">
+    <div class="settings-drawer-header">
+      <span>Settings</span>
+      <button id="settingsCloseBtn" class="icon-btn" aria-label="Close settings">&#10005;</button>
+    </div>
+    <div class="settings-group">
+      <h3>MCP Server</h3>
+      <div class="settings-row">
+        <label class="settings-label">Server URL
+          <input id="serverUrl" type="url" value="http://127.0.0.1:3095" spellcheck="false">
+        </label>
+        <button id="refreshBtn" type="button">Refresh</button>
+      </div>
+    </div>
+    <div class="settings-group">
+      <h3>AI / LLM</h3>
+      <div class="settings-row">
+        <label class="settings-label">Model
+          <input id="aiModelInput" type="text" value="qwen2.5-coder:7b" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="settings-label">Endpoint
+          <input id="aiEndpointInput" type="url" value="http://localhost:11434" spellcheck="false">
+        </label>
+      </div>
+      <div class="settings-row">
+        <button id="aiDetectBtn" type="button" class="btn-secondary">Detect AI</button>
+        <span class="note" style="font-size:11px">Ollama &middot; llama.cpp &middot; Ctrl+Space &middot; ghost text 0.9s &middot; <kbd>Tab</kbd> accept</span>
+      </div>
+    </div>
+  </aside>
+
   <div class="layout">
     <!-- Fleet sidebar -->
-    <aside class="fleet-sidebar">
-      <div class="sidebar-header">Fleet</div>
+    <aside class="fleet-sidebar" id="fleetSidebar">
+      <div class="sidebar-header">
+        <span>Fleet</span>
+        <button id="sidebarToggle" class="sidebar-toggle" title="Collapse sidebar" aria-label="Collapse sidebar">&#9664;</button>
+      </div>
       <div id="genFilter" class="gen-filter"></div>
       <div id="fleetList" class="fleet-list"></div>
       <button id="loadServerBtn" type="button" class="btn-secondary sidebar-footer-btn">Load from server</button>
@@ -151,14 +184,7 @@
         </div>
         <div class="ai-status-row">
           <span id="aiPill" class="pill pill-off" title="No AI — click Detect AI">&#9679; AI off</span>
-          <label class="inline-label" style="flex:0 0 auto">Model
-            <input id="aiModelInput" type="text" value="qwen2.5-coder:7b" style="width:140px" spellcheck="false" autocomplete="off">
-          </label>
-          <label class="inline-label" style="flex:0 0 auto">Endpoint
-            <input id="aiEndpointInput" type="url" value="http://localhost:11434" style="width:190px" spellcheck="false">
-          </label>
-          <button id="aiDetectBtn" type="button" class="btn-secondary">Detect AI</button>
-          <span class="note" style="font-size:11px">Ollama &middot; llama.cpp &middot; Ctrl+Space for dropdown &middot; ghost text appears after 0.9s idle &middot; <kbd>Tab</kbd> to accept</span>
+          <button type="button" class="btn-ghost" id="aiSettingsShortcut" title="Open AI &amp; server settings">&#9881; Settings</button>
         </div>
         <div id="editorWrap">
           <textarea id="editorArea">
