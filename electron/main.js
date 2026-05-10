@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 /**
- * Electron main process — Mindstorms Robot Studio desktop app.
+ * Electron main process - Mindstorms Robot Creator desktop app.
  *
  * Starts the local action server (server.js), waits for it to be healthy,
  * then opens the web-app/index.html in a Chromium window.

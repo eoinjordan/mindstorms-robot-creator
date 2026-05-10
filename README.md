@@ -17,7 +17,7 @@ Build, code, and connect LEGO MINDSTORMS robots. Works in the browser, as a desk
 
 | Platform | Link |
 |---|---|
-| **Windows** (.exe) | [mindstorms-robot-creator-setup.exe](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
+| **Windows** (.exe) | [mindstorms-robot-creator-setup.exe](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-robot-creator-setup.exe) |
 | **macOS** (.dmg) | [GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
 | **Linux** (.AppImage) | [GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
 | **Android** APK | [mindstorms-ai-creator-latest-debug.apk](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk) |

@@ -1,9 +1,6 @@
 /**
- * electron-builder configuration for Mindstorms Robot Studio.
- * Produces: Windows NSIS installer (.exe), Windows portable (.exe),
- *           macOS DMG, Linux AppImage.
- *
- * Run: npm run electron:build:win
+ * electron-builder configuration for Mindstorms Robot Creator.
+ * Produces Windows installer/portable EXEs, macOS DMGs, and a Linux AppImage.
  */
 
 /** @type {import('electron-builder').Configuration} */
@@ -11,13 +8,10 @@ module.exports = {
   appId: "com.eoinedge.mindstorms-robot-creator",
   productName: "Mindstorms Robot Creator",
 
-  // Override "main" in the packaged app (root package.json "main" stays as server.js
-  // for module-export compatibility; electron-builder uses this instead at build time).
   extraMetadata: {
     main: "electron/main.js"
   },
 
-  // Files to include in the app bundle (no node_modules — zero npm runtime deps)
   files: [
     "electron/**",
     "web-app/**",
@@ -30,51 +24,55 @@ module.exports = {
     "package.json"
   ],
 
-  // Folders that should be present but excluded from asar (writable at runtime)
   asar: true,
   asarUnpack: [
     "out/**"
   ],
 
   directories: {
+    buildResources: "build",
     output: "dist-electron"
   },
 
-  // ── Windows ──────────────────────────────────────────────────────────────────
   win: {
+    icon: "icon.ico",
     target: [
-      { target: "nsis",     arch: ["x64"] },
+      { target: "nsis", arch: ["x64"] },
       { target: "portable", arch: ["x64"] }
-    ]
-    // icon: "build/icon.ico"  — add a 256x256 ICO file here for branding
+    ],
+    artifactName: "${name}-portable.${ext}"
   },
+
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
-    installerHeader: undefined,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: "Mindstorms Robot Creator",
+    uninstallDisplayName: "Mindstorms Robot Creator",
+    installerIcon: "icon.ico",
+    uninstallerIcon: "icon.ico",
+    installerHeaderIcon: "icon.ico",
     artifactName: "${name}-setup.${ext}"
   },
 
-  // ── macOS ─────────────────────────────────────────────────────────────────────
   mac: {
+    icon: "icon.icns",
     target: [{ target: "dmg", arch: ["x64", "arm64"] }],
-    category: "public.app-category.education"
+    category: "public.app-category.education",
+    artifactName: "${name}-${arch}.${ext}"
   },
+
   dmg: {
     title: "Mindstorms Robot Creator"
   },
 
-  // ── Linux ─────────────────────────────────────────────────────────────────────
   linux: {
+    icon: "icon.png",
     target: [{ target: "AppImage", arch: ["x64"] }],
-    category: "Education"
+    category: "Education",
+    artifactName: "${name}.${ext}"
   },
 
-  // ── Publish (GitHub Releases) ─────────────────────────────────────────────────
-  // Set GH_TOKEN env var and uncomment to auto-publish to GitHub Releases.
-  // publish: { provider: "github", releaseType: "release" }
   publish: null
 };

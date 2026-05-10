@@ -1,7 +1,8 @@
 {
   "name": "mindstorms-robot-creator",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Build, code, and control LEGO MINDSTORMS robots with AI. Browser app, desktop installer, Android app, and MCP server.",
+  "author": "Eoin Jordan",
   "main": "server.js",
   "type": "commonjs",
   "bin": {
@@ -20,6 +21,7 @@
     "android:sync-51515": "node scripts/sync-android-51515-assets.js",
     "android:sync-design": "node scripts/sync-android-design-docs.js",
     "android:assemble": "cd android/robot-inventor-app && gradlew.bat :app:assembleDebug",
+    "icons:generate": "node scripts/generate-icons.js",
     "electron:dev": "electron electron/main.js",
     "electron:build": "electron-builder --config electron/builder.config.cjs",
     "electron:build:win": "electron-builder --win --config electron/builder.config.cjs",

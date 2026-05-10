@@ -1,10 +1,10 @@
-/* Mindstorms Robot Studio — service worker
+/* Mindstorms Robot Creator - service worker
    Caches all local assets for offline use. CDN scripts are cached on first load.
    The app works fully offline for code generation, .lms download, and Blockly.
    Builder sessions and server features still require the local MCP server.
 */
 
-const CACHE_NAME = "mindstorms-robot-studio-v1";
+const CACHE_NAME = "mindstorms-robot-creator-v2";
 
 // Local assets to pre-cache on install
 const LOCAL_ASSETS = [

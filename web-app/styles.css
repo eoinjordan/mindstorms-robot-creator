@@ -59,6 +59,7 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-logo { display: flex; align-items: center; flex-shrink: 0; }
+.brand-logo img { display: block; width: 34px; height: 34px; }
 .brand-name {
   font-weight: 700;
   font-size: 15px;

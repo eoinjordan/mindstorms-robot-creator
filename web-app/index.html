@@ -24,74 +24,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
-        <svg width="34" height="34" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="bg-grad" cx="50%" cy="40%" r="60%">
-              <stop offset="0%" stop-color="#1a2e3a"/>
-              <stop offset="100%" stop-color="#0a141a"/>
-            </radialGradient>
-            <radialGradient id="brain-grad" cx="50%" cy="40%" r="60%">
-              <stop offset="0%" stop-color="#c084fc"/>
-              <stop offset="100%" stop-color="#7c3aed"/>
-            </radialGradient>
-            <radialGradient id="eye-l" cx="35%" cy="35%" r="55%">
-              <stop offset="0%" stop-color="#67e8f9"/>
-              <stop offset="100%" stop-color="#0891b2"/>
-            </radialGradient>
-            <radialGradient id="eye-r" cx="35%" cy="35%" r="55%">
-              <stop offset="0%" stop-color="#5eead4"/>
-              <stop offset="100%" stop-color="#0c7a71"/>
-            </radialGradient>
-            <linearGradient id="body-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#1e4a5a"/>
-              <stop offset="100%" stop-color="#0f2d38"/>
-            </linearGradient>
-            <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          </defs>
-          <!-- rounded square bg -->
-          <rect width="200" height="200" rx="38" fill="url(#bg-grad)"/>
-          <!-- neck -->
-          <rect x="84" y="118" width="32" height="14" rx="4" fill="#1a3a48"/>
-          <!-- body -->
-          <rect x="42" y="130" width="116" height="52" rx="14" fill="url(#body-grad)" stroke="#2a5a70" stroke-width="2"/>
-          <!-- body port dots -->
-          <circle cx="68" cy="156" r="7" fill="#0d1a22" stroke="#5eead4" stroke-width="1.5"/>
-          <circle cx="100" cy="156" r="7" fill="#0d1a22" stroke="#5eead4" stroke-width="1.5"/>
-          <circle cx="132" cy="156" r="7" fill="#0d1a22" stroke="#5eead4" stroke-width="1.5"/>
-          <!-- arms -->
-          <rect x="18" y="134" width="22" height="10" rx="5" fill="#173040"/>
-          <rect x="160" y="134" width="22" height="10" rx="5" fill="#173040"/>
-          <!-- head jar (glass cylinder) -->
-          <ellipse cx="100" cy="72" rx="44" ry="12" fill="#1a3a48" opacity="0.7"/>
-          <rect x="56" y="26" width="88" height="46" fill="#0d2030" opacity="0.55"/>
-          <rect x="56" y="26" width="88" height="46" rx="0" fill="none" stroke="#5eead4" stroke-width="2.5" opacity="0.5"/>
-          <ellipse cx="100" cy="26" rx="44" ry="12" fill="#1e4a5a" opacity="0.9"/>
-          <!-- brain -->
-          <ellipse cx="100" cy="48" rx="28" ry="22" fill="url(#brain-grad)" filter="url(#glow)" opacity="0.92"/>
-          <!-- brain folds -->
-          <path d="M78 42 Q88 36 100 40 Q112 36 122 42" stroke="#e9d5ff" stroke-width="1.5" fill="none" opacity="0.6"/>
-          <path d="M76 50 Q88 44 100 48 Q112 44 124 50" stroke="#e9d5ff" stroke-width="1.5" fill="none" opacity="0.5"/>
-          <path d="M79 57 Q90 52 100 55 Q110 52 121 57" stroke="#e9d5ff" stroke-width="1.5" fill="none" opacity="0.4"/>
-          <line x1="100" y1="28" x2="100" y2="38" stroke="#a78bfa" stroke-width="1.5" opacity="0.7"/>
-          <!-- head base / face plate -->
-          <rect x="58" y="72" width="84" height="48" rx="12" fill="url(#body-grad)" stroke="#2a5a70" stroke-width="2"/>
-          <!-- left eye (blue, Wall-E style binocular) -->
-          <rect x="64" y="80" width="28" height="22" rx="8" fill="#0d1a22" stroke="#67e8f9" stroke-width="2"/>
-          <circle cx="78" cy="91" r="9" fill="url(#eye-l)" filter="url(#glow)"/>
-          <circle cx="78" cy="91" r="5" fill="#0d1a22"/>
-          <circle cx="80" cy="89" r="2" fill="#fff" opacity="0.8"/>
-          <!-- right eye (green, slightly different) -->
-          <rect x="108" y="80" width="28" height="22" rx="8" fill="#0d1a22" stroke="#5eead4" stroke-width="2"/>
-          <circle cx="122" cy="91" r="9" fill="url(#eye-r)" filter="url(#glow)"/>
-          <circle cx="122" cy="91" r="5" fill="#0d1a22"/>
-          <circle cx="124" cy="89" r="2" fill="#fff" opacity="0.8"/>
-          <!-- antenna on top of jar -->
-          <line x1="100" y1="14" x2="100" y2="4" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="100" cy="4" r="4" fill="#5eead4" filter="url(#glow)"/>
-          <!-- mouth indicator bar -->
-          <rect x="76" y="108" width="48" height="6" rx="3" fill="#0d1a22"/>
-          <rect x="76" y="108" width="20" height="6" rx="3" fill="#5eead4" opacity="0.8"/>
-        </svg>
+        <img src="./icon-192.svg" alt="" width="34" height="34">
       </div>
       <span class="brand-name">Mindstorms Robot Creator</span>
       <span id="serverPill" class="pill pill-off">&#9679; server offline</span>

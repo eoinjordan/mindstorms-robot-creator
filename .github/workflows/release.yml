@@ -58,7 +58,7 @@ jobs:
         with:
           name: ui-screenshots
           path: screencaps/ci/*.png
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Attach screenshots to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -93,9 +93,9 @@ jobs:
         with:
           name: windows-installer
           path: |
-            dist-electron/*.exe
-            dist-electron/*.msi
-          if-no-files-found: warn
+            dist-electron/mindstorms-robot-creator-setup.exe
+            dist-electron/mindstorms-robot-creator-portable.exe
+          if-no-files-found: error
 
       # Also attach to the GitHub Release if this is a tag push
       - name: Attach to GitHub Release
@@ -104,8 +104,8 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            dist-electron/*.exe
-            dist-electron/*.msi
+            dist-electron/mindstorms-robot-creator-setup.exe
+            dist-electron/mindstorms-robot-creator-portable.exe
 
   # 4. macOS desktop app
   build-mac:
@@ -134,18 +134,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-installer
-          path: dist-electron/*.dmg
-          if-no-files-found: warn
+          path: dist-electron/mindstorms-robot-creator-*.dmg
+          if-no-files-found: error
 
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist-electron/*.dmg
+          files: dist-electron/mindstorms-robot-creator-*.dmg
 
   # 5. Linux desktop app
   build-linux:
-    name: Build Linux (.AppImage + .deb)
+    name: Build Linux (.AppImage)
     needs: [test, screenshot]
     runs-on: ubuntu-latest
     steps:
@@ -168,23 +168,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-packages
-          path: |
-            dist-electron/*.AppImage
-            dist-electron/*.deb
-          if-no-files-found: warn
+          path: dist-electron/mindstorms-robot-creator.AppImage
+          if-no-files-found: error
 
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist-electron/*.AppImage
-            dist-electron/*.deb
+          files: dist-electron/mindstorms-robot-creator.AppImage
 
   # 6. Android APK
-  # Builds an unsigned release APK from android/robot-inventor-app.
-  # The APK is attached to the GitHub Release and is also the artifact
-  # submitted to F-Droid (which re-builds from source itself).
+  # Builds a repo-side debug APK from android/robot-inventor-app.
+  # The separate Android app repo remains the canonical Android source; this
+  # job keeps the main release page useful even when no signing key is present.
   build-android:
     name: Build Android APK
     needs: [test, screenshot]
@@ -212,22 +208,86 @@ jobs:
         working-directory: android/robot-inventor-app
         run: chmod +x gradlew
 
-      - name: Build release APK (unsigned)
+      - name: Build debug APK
         working-directory: android/robot-inventor-app
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Stage APK
+        run: |
+          mkdir -p release-artifacts/android
+          cp android/robot-inventor-app/app/build/outputs/apk/debug/*.apk \
+            release-artifacts/android/mindstorms-ai-creator-latest-debug.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/robot-inventor-app/app/build/outputs/apk/release/*.apk
+          path: release-artifacts/android/mindstorms-ai-creator-latest-debug.apk
           if-no-files-found: error
 
       - name: Attach APK to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: android/robot-inventor-app/app/build/outputs/apk/release/*.apk
+          files: release-artifacts/android/mindstorms-ai-creator-latest-debug.apk
+
+  verify-release-assets:
+    name: Verify release assets
+    needs: [screenshot, build-windows, build-mac, build-linux, build-android]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check GitHub Release downloads
+        run: |
+          set -euo pipefail
+
+          check_assets() {
+            gh release view "$GITHUB_REF_NAME" --json assets > release-assets.json
+            python3 - <<'PY'
+          import json
+          import sys
+
+          data = json.load(open("release-assets.json", encoding="utf-8"))
+          names = sorted(asset["name"] for asset in data.get("assets", []))
+          required = [
+              "builder-tab.png",
+              "code-tab.png",
+              "connect-tab.png",
+              "full-page.png",
+              "voice-tab.png",
+              "mindstorms-robot-creator-setup.exe",
+              "mindstorms-robot-creator-portable.exe",
+              "mindstorms-robot-creator-x64.dmg",
+              "mindstorms-robot-creator-arm64.dmg",
+              "mindstorms-robot-creator.AppImage",
+              "mindstorms-ai-creator-latest-debug.apk",
+          ]
+          missing = [name for name in required if name not in names]
+          if missing:
+              print("Missing release assets:")
+              for name in missing:
+                  print(f"- {name}")
+              print("Current assets:")
+              for name in names:
+                  print(f"- {name}")
+              sys.exit(1)
+          print("Release assets verified:")
+          for name in required:
+              print(f"- {name}")
+          PY
+          }
+
+          for attempt in $(seq 1 18); do
+            if check_assets; then
+              exit 0
+            fi
+            echo "Release assets not complete yet; retrying..."
+            sleep 10
+          done
+
+          check_assets
 
   # 7. Publish to npm
   # Publishes the MCP server package to npmjs.org on every version tag.
@@ -236,7 +296,7 @@ jobs:
     name: Publish to npm
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') && vars.PUBLISH_NPM == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -257,7 +317,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  # ── 8. Submit/update F-Droid metadata ─────────────────────────────────────────
+  # 8. Submit/update F-Droid metadata
   # On every version tag, pushes an updated metadata YAML to the
   # eoinjordan/fdroiddata fork on GitLab and opens (or updates) a merge request
   # against fdroid/fdroiddata so F-Droid can rebuild from source.
@@ -272,7 +332,7 @@ jobs:
     name: Submit to F-Droid
     needs: build-android
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') && vars.SUBMIT_FDROID == 'true'
     steps:
       - uses: actions/checkout@v4
 
