@@ -260,3 +260,122 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  # ── 8. Submit/update F-Droid metadata ─────────────────────────────────────────
+  # On every version tag, pushes an updated metadata YAML to the
+  # eoinjordan/fdroiddata fork on GitLab and opens (or updates) a merge request
+  # against fdroid/fdroiddata so F-Droid can rebuild from source.
+  #
+  # ONE-TIME SETUP:
+  #   1. Fork https://gitlab.com/fdroid/fdroiddata to your eoinjordan account
+  #   2. In that fork, copy fdroid/com.eoinedge.robotinventor.yml
+  #      to metadata/com.eoinedge.robotinventor.yml and merge to main
+  #   3. Create a GitLab Personal Access Token (scopes: api, write_repository)
+  #   4. Add it as GitHub secret: FDROID_GITLAB_TOKEN
+  submit-fdroid:
+    name: Submit to F-Droid
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version info
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION_NAME="${TAG#v}"
+          VERSION_CODE=$(grep -oP '(?<=versionCode = )\d+' android/robot-inventor-app/app/build.gradle.kts)
+          echo "tag=$TAG"           >> "$GITHUB_OUTPUT"
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Clone fdroiddata fork
+        env:
+          FDROID_GITLAB_TOKEN: ${{ secrets.FDROID_GITLAB_TOKEN }}
+        run: |
+          git config --global user.email "ci@github.com"
+          git config --global user.name "Mindstorms Robot Creator CI"
+          git clone \
+            "https://eoinjordan:${FDROID_GITLAB_TOKEN}@gitlab.com/eoinjordan/fdroiddata.git" \
+            fdroiddata --depth=1
+
+      - name: Update metadata and create branch
+        env:
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          cd fdroiddata
+          BRANCH="update/com.eoinedge.robotinventor-${VERSION_NAME}"
+          git checkout -b "$BRANCH"
+
+          python3 - <<'PY'
+          import os, re
+
+          version_name = os.environ["VERSION_NAME"]
+          version_code = os.environ["VERSION_CODE"]
+          tag          = os.environ["TAG"]
+          path         = "metadata/com.eoinedge.robotinventor.yml"
+
+          with open(path) as f:
+              content = f.read()
+
+          # Update CurrentVersion / CurrentVersionCode
+          content = re.sub(r"CurrentVersion: '[^']*'",
+                            f"CurrentVersion: '{version_name}'", content)
+          content = re.sub(r"CurrentVersionCode: \d+",
+                            f"CurrentVersionCode: {version_code}", content)
+
+          # Insert new Builds entry before AutoUpdateMode
+          new_build = (
+              f"  - versionName: '{version_name}'\n"
+              f"    versionCode: {version_code}\n"
+              f"    commit: {tag}\n"
+              f"    subdir: android/robot-inventor-app\n"
+              f"    gradle:\n"
+              f"      - yes\n\n"
+          )
+          content = content.replace("AutoUpdateMode:", new_build + "AutoUpdateMode:", 1)
+
+          with open(path, "w") as f:
+              f.write(content)
+
+          print(f"Updated {path} to {version_name} (versionCode {version_code})")
+          PY
+
+          git add "metadata/com.eoinedge.robotinventor.yml"
+          git commit -m "Update com.eoinedge.robotinventor to ${VERSION_NAME}"
+          git push origin "$BRANCH"
+
+      - name: Open or update merge request via GitLab API
+        env:
+          FDROID_GITLAB_TOKEN: ${{ secrets.FDROID_GITLAB_TOKEN }}
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+        run: |
+          BRANCH="update/com.eoinedge.robotinventor-${VERSION_NAME}"
+          SOURCE_PROJECT="eoinjordan%2Ffdroiddata"
+          TARGET_PROJECT="fdroid%2Ffdroiddata"
+
+          # Check if MR already exists for this branch
+          EXISTING=$(curl -sf \
+            -H "PRIVATE-TOKEN: ${FDROID_GITLAB_TOKEN}" \
+            "https://gitlab.com/api/v4/projects/${SOURCE_PROJECT}/merge_requests?source_branch=${BRANCH}&state=opened" \
+            | python3 -c "import sys,json; mrs=json.load(sys.stdin); print(mrs[0]['iid'] if mrs else '')")
+
+          if [ -n "$EXISTING" ]; then
+            echo "MR !${EXISTING} already open — skipping creation"
+          else
+            curl -sf -X POST \
+              -H "PRIVATE-TOKEN: ${FDROID_GITLAB_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "https://gitlab.com/api/v4/projects/${SOURCE_PROJECT}/merge_requests" \
+              -d "{
+                \"source_branch\": \"${BRANCH}\",
+                \"target_project_id\": \"$(curl -sf https://gitlab.com/api/v4/projects/${TARGET_PROJECT} | python3 -c 'import sys,json; print(json.load(sys.stdin)[\"id\"])')\",
+                \"target_branch\": \"master\",
+                \"title\": \"Update com.eoinedge.robotinventor to ${VERSION_NAME}\",
+                \"description\": \"Automated update from GitHub Actions release workflow.\\n\\nApp: Mindstorms Robot Creator\\nVersion: ${VERSION_NAME}\\nSource: https://github.com/eoinjordan/mindstorms-robot-creator/releases/tag/v${VERSION_NAME}\",
+                \"remove_source_branch\": true
+              }" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Created MR !{d[\"iid\"]}: {d[\"web_url\"]}')"
+          fi
+
