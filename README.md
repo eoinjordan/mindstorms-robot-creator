@@ -1,12 +1,8 @@
 # Mindstorms Robot Creator
 
-> Build, code, and control LEGO MINDSTORMS robots with AI.  
-> Browser app · Desktop installer · Android app · MCP server
+Build, code, and connect LEGO MINDSTORMS robots. Works in the browser, as a desktop app, on Android, and as an AI agent tool.
 
-**[🌐 Live Web App](https://eoinjordan.github.io/mindstorms-robot-creator/)** &nbsp;|&nbsp;
-**[📱 Android Repo](https://github.com/eoinjordan/mindstorms-robot-creator-android)**
-
----
+**[Live Web App](https://eoinjordan.github.io/mindstorms-robot-creator/)** | **[Android Repo](https://github.com/eoinjordan/mindstorms-robot-creator-android)**
 
 [![npm](https://img.shields.io/npm/v/mindstorms-robot-creator?label=npm&color=teal)](https://www.npmjs.com/package/mindstorms-robot-creator)
 [![GitHub release](https://img.shields.io/github/v/release/eoinjordan/mindstorms-robot-creator?label=release)](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest)
@@ -17,57 +13,89 @@
 
 ---
 
-## ⬇ Download
+## Download
 
 | Platform | Link |
 |---|---|
-| **Windows** installer (.exe) | [**⬇ mindstorms-robot-creator-setup.exe**](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
-| **macOS** (.dmg) | [⬇ GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
-| **Linux** (.AppImage) | [⬇ GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
-| **Android** APK | [**⬇ app-release.apk**](https://github.com/eoinjordan/mindstorms-robot-creator-android/releases/latest) |
-| **npm** (MCP server) | `npx mindstorms-robot-creator` |
-| **Browser / PWA** | [eoinjordan.github.io/mindstorms-robot-creator](https://eoinjordan.github.io/mindstorms-robot-creator/) |
+| **Windows** (.exe) | [mindstorms-robot-creator-setup.exe](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
+| **macOS** (.dmg) | [GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
+| **Linux** (.AppImage) | [GitHub Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest) |
+| **Android** APK | [app-release.apk](https://github.com/eoinjordan/mindstorms-robot-creator-android/releases/latest) |
+| **Browser** | [eoinjordan.github.io/mindstorms-robot-creator](https://eoinjordan.github.io/mindstorms-robot-creator/) |
 
 ---
 
-![Code generator demo](screencaps/demos/code-beep-hello.png)
+![Code generator](screencaps/demos/code-beep-hello.png)
 
 ---
 
-## Features
+## What it does
 
-- **Code Generator** — pick a robot, pick an intent (beep, probe, drive, wave), get Pybricks or LEGO Stock Python in one click. Download as `.lms` file ready to load in the LEGO app.
-- **Builder Session** — human-in-the-loop debug loop: propose one safe test, record what happened, get the next suggestion.
-- **Connect** — Bluetooth (BLE, recommended) or USB Web Serial. Stock LEGO firmware supported via LWP3; full REPL with Pybricks.
-- **Voice KWS** — load an Edge Impulse WebAssembly keyword-spotting model and control the robot by voice.
-- **MCP Server** — 14 tools for AI agents (Claude Desktop, VS Code Copilot, Cursor). Zero runtime dependencies.
+**Code Generator:** Pick a robot and an action (beep, probe, drive, wave). Get runnable code in Pybricks, LEGO Stock Python, ev3dev, NXT-Python, or NQC depending on the generation. Download as `.lms`, `.py`, or `.nqc`.
+
+**Builder:** Step through one safe test at a time. Generate code, run it, record what happened, get the next suggestion.
+
+**Connect:** Bluetooth (BLE) or USB Web Serial. Works with stock LEGO firmware via LWP3 and with Pybricks for a full Python REPL.
+
+**Voice control:** Load an Edge Impulse keyword-spotting model and trigger robot actions by voice in the browser.
+
+---
+
+## Hardware generations
+
+| Generation | Connection |
+|---|---|
+| Robot Inventor 51515 | BLE or USB (Pybricks / LWP3) |
+| SPIKE Prime | BLE or USB |
+| EV3 31313 | USB, Bluetooth, Wi-Fi |
+| NXT 1.0 / 2.0 | Bluetooth Classic or USB |
+| RCX | Infrared tower |
 
 ---
 
 ## Screenshots
 
-| Code Generator | Connect via Bluetooth |
+| Code tab | Connect tab |
 |---|---|
-| ![Code tab](screencaps/demos/code-safe-probe.png) | ![Connect tab](screencaps/demos/connect-ble-section.png) |
+| ![Code](screencaps/demos/code-safe-probe.png) | ![Connect](screencaps/demos/connect-ble-section.png) |
 
-| Builder Session | Voice KWS |
+| Builder tab | Voice tab |
 |---|---|
-| ![Builder tab](screencaps/demos/builder-observation.png) | ![Voice tab](screencaps/demos/voice-overview.png) |
+| ![Builder](screencaps/demos/builder-observation.png) | ![Voice](screencaps/demos/voice-overview.png) |
 
 ---
 
-## Quick Start
+## Quick start
 
-### Browser / PWA
+### Browser
 
 ```bash
 npx serve web-app
-# then open http://localhost:3000 in Chrome or Edge
 ```
 
-Or visit the hosted version: **https://eoinjordan.github.io/mindstorms-robot-creator/**
+Open http://localhost:3000 in Chrome or Edge. Or use the hosted version at https://eoinjordan.github.io/mindstorms-robot-creator/
 
-### MCP Server (Claude Desktop / VS Code Copilot)
+### Desktop app
+
+Download the installer from [Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases), or build locally:
+
+```bash
+npm run electron:build:win    # Windows
+npm run electron:build:mac    # macOS
+npm run electron:build:linux  # Linux
+```
+
+### Android
+
+Install the APK from [Releases](https://github.com/eoinjordan/mindstorms-robot-creator-android/releases) or build from the [Android repo](https://github.com/eoinjordan/mindstorms-robot-creator-android).
+
+Built with Kotlin and Jetpack Compose, with BLE and USB transport, session history, and voice keyword spotting. F-Droid submission pending.
+
+---
+
+## MCP server
+
+For use with AI agents (Claude Desktop, VS Code Copilot, Cursor):
 
 ```bash
 npx -y mindstorms-robot-creator
@@ -100,72 +128,26 @@ Or in `.vscode/mcp.json`:
 }
 ```
 
-### Desktop App (Windows .exe)
-
-Download the latest installer from [Releases](https://github.com/eoinjordan/mindstorms-robot-creator/releases).
-
-Or build locally:
-
-```bash
-npm run electron:build:win
-```
-
----
-
-## MCP Tools
+### Tools
 
 | Tool | Description |
 |---|---|
-| `robot_scan` | List all available robot profiles |
-| `robot_describe` | Get port map, motors, sensors, capabilities |
-| `robot_classify` | Classify probe telemetry into a morphology label |
-| `builder_session_start` | Start a human-in-the-loop debug session |
-| `builder_session_append` | Record an observation or debug note |
-| `builder_session_summary` | Summarize session and suggest next action |
-| `official_client_handoff` | Get handoff steps for the LEGO or Pybricks app |
-| `probe_plan_create` | Generate a safe probing plan |
-| `probe_run` | Execute a probe and capture telemetry |
-| `dataset_export` | Export sessions as Edge Impulse JSON/CSV |
-| `code_generate` | Generate Pybricks or LEGO Stock Python |
+| `robot_scan` | List robot profiles |
+| `robot_describe` | Port map, motors, sensors, capabilities |
+| `robot_classify` | Classify probe telemetry into a morphology |
+| `builder_session_start` | Start a builder session |
+| `builder_session_append` | Record an observation |
+| `builder_session_summary` | Summarize and suggest next step |
+| `official_client_handoff` | Steps for the LEGO or Pybricks app |
+| `probe_plan_create` | Generate a safe probe plan |
+| `probe_run` | Run a probe and capture telemetry |
+| `dataset_export` | Export as Edge Impulse JSON/CSV |
+| `code_generate` | Generate robot code |
 | `lms_write` | Create a `.lms` project file |
-| `lms_read` | Read and inspect an `.lms` file |
-
----
-
-## Hardware Support
-
-| Family | Priority | Connection |
-|---|---|---|
-| Robot Inventor 51515 | 1 | BLE / USB (Pybricks or LWP3) |
-| SPIKE Prime | 2 | BLE / USB |
-| EV3 | 3 | USB, Bluetooth, Wi-Fi |
-| NXT | 4 | Bluetooth Classic / USB |
-
----
-
-## Android App
-
-The Android companion app is in a separate repo:  
-**https://github.com/eoinjordan/mindstorms-robot-creator-android**
-
-- Kotlin + Jetpack Compose (Material 3)
-- BLE + USB transport, Room session history, Edge Impulse voice KWS
-- F-Droid submission in progress ([metadata](fdroid/com.eoinedge.robotinventor.yml))
-
----
-
-## npm Publish
-
-```bash
-npm login
-npm publish --access public
-```
-
-The package ships: `server.js`, `mcp-server.js`, `cli.js`, `adapters/`, `schemas/`, `examples/`, `web-app/`.
+| `lms_read` | Read an `.lms` file |
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
-- **Voice KWS** — load an Edge Impulse WebAssembly keyword-spotting model and control the robot by voice.
+MIT. See [LICENSE](LICENSE).

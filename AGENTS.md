@@ -1,146 +1,130 @@
 # Agent Guide
 
-This repo is a local-first robotics project for LEGO MINDSTORMS generations, SPIKE/Robot Inventor hubs, and M5Stack LEGO motor hardware. Agents should treat it as a buildable engineering repo, not just a note collection.
+Local robotics project for LEGO MINDSTORMS (RCX, NXT, EV3, SPIKE Prime, Robot Inventor 51515) and M5Stack LEGO motor hardware.
 
-## What This Project Is
+## Project layout
 
-- A local action server in `server.js` for robot discovery, probing, classification, dataset export, and later code/model deployment.
-- A human-in-the-loop builder/debugger so agents can help kids and users run one safe robot test, record what happened, and choose the next fix.
-- A hardware-adapter layer under `adapters/` so each robot family hides its transport quirks behind one contract.
-- Shared JSON schemas under `schemas/` for robot profiles, probe sessions, code targets, and builder sessions.
-- Seed simulated profiles under `examples/profiles/` for testing without hardware.
-- Future Android app and hardware firmware work driven by the same profile and probe-session formats.
+- `server.js` - action server: robot discovery, probing, classification, code generation, dataset export
+- `adapters/` - hardware transport layer, one interface per robot family
+- `schemas/` - JSON schemas for robot profiles, probe sessions, code targets, builder sessions
+- `examples/profiles/` - simulated robot profiles for testing without hardware
+- `cli.js` - command-line runner, no HTTP required
+- `web-app/` - browser app and Electron desktop shell
+- `mcp-server.js` - stdio MCP entry point for agent integrations
 
-The first vertical slice is **Robot Inventor 51515 + Android + local MCP/action server**.
+## Read these first
 
-## Read These First
+1. `README.md` - product overview
+2. `MCP_SERVER.md` - local server API
+3. `docs/CLI.md` - before changing CLI workflows
+4. `docs/HUMAN_IN_THE_LOOP_BUILDER.md` - before changing builder/debug logic
+5. `docs/KID_SAFE_DEBUGGING.md` - before adding child-facing content
+6. `docs/ANDROID_APP.md`, `docs/ANDROID_BUILDER_DESIGN.md` - before changing the Android app
+7. `docs/ADAPTERS.md` - before touching hardware adapters
+8. `docs/DATA_AND_MODELS.md` - before changing schemas or classifier logic
+9. `docs/CODE_GENERATION.md` - before adding code generation templates
+10. `docs/ROADMAP.md` - milestone order
+11. `docs/OFFICIAL_LEGO_CLIENT.md` - before integrating the official LEGO client
 
-Use this order when working in the repo:
+## Commands
 
-1. `README.md` for product direction and current scaffold.
-2. `AGENTS.md` for agent operating rules.
-3. `MCP_SERVER.md` for local tool/API usage.
-4. `docs/CLI.md` before changing agent command workflows.
-5. `docs/HUMAN_IN_THE_LOOP_BUILDER.md` before changing builder/debug workflows.
-6. `docs/KID_SAFE_DEBUGGING.md` before adding child-facing tests or instructions.
-7. `docs/ANDROID_APP.md` and `docs/ANDROID_BUILDER_DESIGN.md` before changing the Android app.
-8. `docs/ADAPTERS.md` before touching hardware code.
-9. `docs/DATA_AND_MODELS.md` before changing schemas, classifier logic, or model deployment.
-10. `docs/CODE_GENERATION.md` before adding generated program templates.
-11. `docs/ROADMAP.md` for milestone order.
-12. `docs/OFFICIAL_LEGO_CLIENT.md` before integrating with the official LEGO client.
-
-## Current Commands
-
-Run syntax checks:
+Syntax checks:
 
 ```powershell
 node --check server.js
 node --check cli.js
-node --check test-apps\builder-console\app.js
 node --check adapters\m5stack-basex.js
-node --check scripts\smoke.js
 ```
 
-Run the Node test suite:
+Tests:
 
 ```powershell
 node --test tests/*.test.js
 ```
 
-Run the simulated probe/classify loop:
+Simulated probe/classify smoke test:
 
 ```powershell
 node scripts\smoke.js
 ```
 
-Start the local action server:
+Run the server:
 
 ```powershell
 node server.js
-node cli.js server
 ```
 
-Call actions without HTTP:
+CLI (no server required):
 
 ```powershell
-node cli.js actions
 node cli.js scan --plain
 node cli.js builder start 51515-blast --goal "make Blast wave safely" --audience kid --plain
 ```
 
-Call the server over HTTP:
+HTTP (when server is running):
 
 ```powershell
 curl.exe -s http://127.0.0.1:3095/health
-curl.exe -s http://127.0.0.1:3095/ready
 curl.exe -s http://127.0.0.1:3095/actions
 ```
 
-PowerShell may block `npm.ps1` on this machine. Prefer direct `node ...` commands unless npm has already been confirmed usable in the current shell.
+PowerShell may block `npm.ps1` on this machine. Use direct `node` commands unless npm is confirmed usable.
 
-## Agent Workflow
+## Workflow
 
-For most changes:
-
-1. Identify which layer is being changed: server, adapter, schema, Android, model, generated code, or docs.
-2. Read the matching doc under `docs/`.
+1. Identify the layer being changed: server, adapter, schema, Android, generated code, or docs.
+2. Read the matching doc in `docs/`.
 3. Keep changes narrow and schema-compatible.
-4. Add or update a simulated profile or smoke fixture if behavior changes.
+4. Update or add a simulated profile if behaviour changes.
 5. Run `node scripts\smoke.js`.
-6. Update docs when tool names, schemas, safety limits, or milestone status changes.
+6. Update docs when tool names, schemas, safety limits, or milestones change.
 
-## Safety Rules
+## Safety rules
 
-- Motor probing must start simulated unless the user explicitly asks for real hardware behavior.
-- Human-in-the-loop builder sessions should propose one safe test, wait for user observation, then suggest one next change.
+- Motor probing starts simulated unless the user explicitly requests real hardware.
+- Builder sessions propose one safe test, wait for the user's observation, then suggest one change.
 - For kids and classrooms, prefer the official LEGO client handoff or simulation before direct motor control.
-- Real motor routines must include low duty limits, short duration, immediate stop, and user abort.
-- Never add a probe that intentionally drives into a hard stop without cutoff logic.
-- Keep network services bound to `127.0.0.1` by default.
-- Do not upload probe data, photos, or model artifacts to cloud services unless the user explicitly requests it and credentials are configured.
-- Do not modify or delete `PDF_manuals/` unless the user specifically asks.
-- Do not introduce generated code that bypasses profile capability checks.
-- Treat the official LEGO client as a manual handoff/status surface unless the user explicitly asks for GUI automation.
+- Real motor routines must use low duty limits, short duration, immediate stop, and allow user abort.
+- Never drive into a hard stop without cutoff logic.
+- Keep network services bound to `127.0.0.1`.
+- Do not upload probe data, photos, or model artifacts to cloud services without explicit user request and configured credentials.
+- Do not modify `PDF_manuals/` unless asked.
+- Do not bypass profile capability checks in generated code.
+- Treat the official LEGO client as a manual handoff surface unless GUI automation is explicitly requested.
 
-## Source Of Truth
+## Source of truth
 
-- Robot definitions: `schemas/robot-profile.schema.json` and `examples/profiles/*.json`
-- Probe data: `schemas/probe-session.schema.json`
-- Builder sessions: `schemas/builder-session.schema.json`
-- Code target requests: `schemas/code-target.schema.json`
-- Available server actions: `server.js` and `MCP_SERVER.md`
-- CLI command surface: `cli.js` and `docs/CLI.md`
-- Test app: `test-apps/builder-console/`
-- Hardware adapter contract: `docs/ADAPTERS.md`
+| What | Where |
+|---|---|
+| Robot profiles | `schemas/robot-profile.schema.json`, `examples/profiles/` |
+| Probe data | `schemas/probe-session.schema.json` |
+| Builder sessions | `schemas/builder-session.schema.json` |
+| Code targets | `schemas/code-target.schema.json` |
+| Server actions | `server.js`, `MCP_SERVER.md` |
+| CLI surface | `cli.js`, `docs/CLI.md` |
+| Hardware adapters | `docs/ADAPTERS.md` |
 
-## Current Scaffold Status
+## Status
 
-Implemented:
+Done:
 
-- local action server
-- no-server CLI action runner
-- browser builder-console test app
-- Node tests for action and CLI flows
-- simulated M5Stack BaseX adapter
-- first 51515 profiles for Blast, Charlie, Gelo, M.V.P., and Tricky
-- first Android app scaffold for browsing 51515 profiles and running a simulated probe
-- probe plan creation
-- simulated probe running
-- heuristic robot classification
-- dataset export formats
-- human-in-the-loop builder session actions
-- official LEGO client handoff action
-- seed profiles for gripper, tracked vehicle, and two-wheel drive
+- Action server and no-server CLI runner
+- 13 robot profiles across all MINDSTORMS generations (51515, EV3, NXT, RCX)
+- Code generation for pybricks-python, lego-stock-python, pybricks-ev3, ev3dev-python, nxt-python, rcx-nqc
+- Generation filter UI in the web app
+- Probe plan creation and simulated probe running
+- Robot morphology classification
+- Dataset export (Edge Impulse JSON/CSV)
+- Builder session actions
+- Official LEGO client handoff
+- Android app (Kotlin/Compose, BLE/USB, session history, voice KWS)
+- Electron desktop app (Windows, macOS, Linux)
+- MCP stdio server
 
-Next engineering work:
+Up next:
 
-- Robot Inventor BLE/Pybricks connection path
-- real 51515 probe session capture
-- confirmed Charlie port map from physical/app test
-- Android app import/export and BLE connection screens
-- official LEGO client handoff flow
-- Android builder/debug notebook screen
-- EV3 Classroom handoff/profile flow
-- Edge Impulse ingestion/export workflow
-- stdio MCP adapter over the local action server
+- Real BLE probe session capture on Robot Inventor
+- Confirmed port maps from physical hardware tests
+- Android BLE connection screen
+- EV3 Classroom handoff flow
+- Edge Impulse ingestion workflow
