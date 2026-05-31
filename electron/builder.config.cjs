@@ -24,10 +24,7 @@ module.exports = {
     "package.json"
   ],
 
-  asar: true,
-  asarUnpack: [
-    "out/**"
-  ],
+  asar: false,
 
   directories: {
     buildResources: "build",
