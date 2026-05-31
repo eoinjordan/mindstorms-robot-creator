@@ -1919,6 +1919,33 @@ function selectedProfile() {
   return state.profiles.find(p => p.id === state.selectedId) || null;
 }
 
+function portSummary(profile) {
+  const ports = Object.values(profile?.ports || {});
+  const motors = ports.filter(p => p.kind === "motor").length;
+  const sensors = ports.filter(p => p.kind === "sensor").length;
+  return `${motors} motors / ${sensors} sensors`;
+}
+
+function selectedTargetLabel() {
+  const sel = el("targetSel");
+  return sel?.selectedOptions?.[0]?.textContent || "No target";
+}
+
+function updateMissionStrip() {
+  const profile = selectedProfile();
+  const meta = GEN_META[profile?.family] || GEN_META["robot-inventor"];
+  const robotEl = el("missionRobot");
+  const kitEl = el("missionKit");
+  const portsEl = el("missionPorts");
+  const targetEl = el("missionTarget");
+  const outputEl = el("missionOutput");
+  if (robotEl) robotEl.textContent = profile?.name || "No robot selected";
+  if (kitEl) kitEl.textContent = profile?.kit || "Select a robot profile";
+  if (portsEl) portsEl.textContent = profile ? portSummary(profile) : "0 motors / 0 sensors";
+  if (targetEl) targetEl.textContent = selectedTargetLabel();
+  if (outputEl) outputEl.textContent = `.${meta.ext || "lms"}`;
+}
+
 // ─── Server API ───────────────────────────────────────────────────────────────
 
 async function api(action, params = {}) {
@@ -2021,6 +2048,7 @@ function selectProfile(id) {
   renderFleet();
   el("codeRobotName").textContent = p ? p.name : "none";
   updateTargetSelector(p ? p.family : "robot-inventor");
+  updateMissionStrip();
   // Show cross-gen note if available
   const noteEl = el("crossGenNote");
   if (noteEl) {
@@ -2057,6 +2085,7 @@ function updateTargetSelector(family) {
       `Note: ${(meta.label || family.toUpperCase())} hubs use USB or legacy Bluetooth (not Web Bluetooth). ` +
       `Generate and Download code here, then deploy with the appropriate desktop tool.`;
   }
+  updateMissionStrip();
 }
 
 // ─── Code tab ─────────────────────────────────────────────────────────────────
@@ -2655,6 +2684,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const meta = GEN_META[family] || GEN_META["robot-inventor"];
       el("downloadLmsBtn").textContent = `\u2193 ${meta.extLabel}`;
     }
+    updateMissionStrip();
   });
 
   // When intent changes while in Blockly mode, auto-reload blocks

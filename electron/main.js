@@ -26,12 +26,12 @@ let serverProcess = null;
 // ─── Server lifecycle ─────────────────────────────────────────────────────────
 
 function startServer() {
-  // When packaged, __dirname is inside the asar — use process.resourcesPath.
-  const serverPath = app.isPackaged
-    ? path.join(process.resourcesPath, "app", "server.js")
-    : path.join(__dirname, "..", "server.js");
+  // Resolve from the app root so dev builds and packaged app.asar builds match.
+  const appRoot = app.isPackaged ? app.getAppPath() : path.join(__dirname, "..");
+  const serverPath = path.join(appRoot, "server.js");
 
   serverProcess = fork(serverPath, [], {
+    cwd: appRoot,
     env: { ...process.env, PORT: String(SERVER_PORT), HOST: SERVER_HOST },
     silent: false
   });
@@ -94,9 +94,8 @@ function createWindow() {
     return { action: "deny" };
   });
 
-  const indexPath = app.isPackaged
-    ? path.join(process.resourcesPath, "app", "web-app", "index.html")
-    : path.join(__dirname, "..", "web-app", "index.html");
+  const appRoot = app.isPackaged ? app.getAppPath() : path.join(__dirname, "..");
+  const indexPath = path.join(appRoot, "web-app", "index.html");
 
   mainWindow.loadFile(indexPath);
   mainWindow.on("closed", () => { mainWindow = null; });

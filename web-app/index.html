@@ -32,7 +32,7 @@
     </div>
     <div class="topbar-right">
       <a class="dl-btn" href="https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-robot-creator-setup.exe" title="Download Windows installer">&#8595; Windows</a>
-      <a class="dl-btn" href="https://github.com/eoinjordan/mindstorms-robot-creator-android/releases/latest/download/app-release.apk" title="Download Android APK">&#8595; Android APK</a>
+      <a class="dl-btn" href="https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest/download/mindstorms-ai-creator-latest-debug.apk" title="Download Android APK">&#8595; Android APK</a>
       <button id="settingsBtn" class="icon-btn" title="Settings (server, AI)">&#9881;</button>
     </div>
   </header>
@@ -90,6 +90,30 @@
         <button class="tab" role="tab" data-tab="connect">Connect</button>
         <button class="tab" role="tab" data-tab="voice">&#127908; Voice KWS</button>
       </nav>
+
+      <section class="mission-strip" aria-label="Robot workspace summary">
+        <div class="mission-primary">
+          <span class="mission-kicker">Workspace</span>
+          <strong id="missionRobot">Blast</strong>
+          <span id="missionKit">LEGO MINDSTORMS Robot Inventor 51515</span>
+        </div>
+        <div class="mission-stat">
+          <span>Ports</span>
+          <strong id="missionPorts">4 motors / 2 sensors</strong>
+        </div>
+        <div class="mission-stat">
+          <span>Target</span>
+          <strong id="missionTarget">LEGO MINDSTORMS App</strong>
+        </div>
+        <div class="mission-stat">
+          <span>Output</span>
+          <strong id="missionOutput">.lms</strong>
+        </div>
+        <div class="mission-actions">
+          <a class="install-link" href="https://github.com/eoinjordan/mindstorms-robot-creator/releases/latest" target="_blank" rel="noopener">Install desktop</a>
+          <a class="install-link" href="https://eoinjordan.github.io/mindstorms-robot-creator/" target="_blank" rel="noopener">Live site</a>
+        </div>
+      </section>
 
       <!-- ── Code tab ── -->
       <section id="tab-code" class="tab-panel" role="tabpanel">
