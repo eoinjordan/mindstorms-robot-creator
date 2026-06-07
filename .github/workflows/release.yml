@@ -123,6 +123,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install dmgbuild deps
+        run: pip3 install dmgbuild mac-alias || true
+
       - name: Build Electron app (macOS)
         run: npm run electron:build:mac
         env:
@@ -206,7 +209,9 @@ jobs:
 
       - name: Make gradlew executable
         working-directory: android/robot-inventor-app
-        run: chmod +x gradlew
+        run: |
+          sed -i 's/\r$//' gradlew
+          chmod +x gradlew
 
       - name: Build debug APK
         working-directory: android/robot-inventor-app
