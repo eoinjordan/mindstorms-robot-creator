@@ -2178,25 +2178,24 @@ async function readLmsBlob(file) {
 //   Pybricks UART RX char  : 'c5f50003-8280-46da-89f4-6d8051e4aeef' (write)
 //   LEGO LWP3 service      : '00001623-1212-efde-1623-785feabcd123'
 //   LEGO LWP3 char         : '00001624-1212-efde-1623-785feabcd123'
-//   WeDo 2.0 service       : '00001523-1212-efde-1523-785feabcd123'
-//   WeDo 2.0 output cmd    : '00001565-1212-efde-1523-785feabcd123' (motor port 1/2)
-//   WeDo 2.0 RGB LED       : '00001525-1212-efde-1523-785feabcd123'
+//   WeDo 2.0 device service : '00001523-1212-efde-1523-785feabcd123' (advertised)
+//   WeDo 2.0 IO service     : '00004f0e-1212-efde-1523-785feabcd123' (motor + LED output)
+//   WeDo 2.0 output cmd     : '00001565-1212-efde-1523-785feabcd123' (motor ports 1/2 + LED port 6)
 
 const PYBRICKS_SERVICE     = "c5f50001-8280-46da-89f4-6d8051e4aeef";
 const PYBRICKS_TX          = "c5f50002-8280-46da-89f4-6d8051e4aeef"; // hub → browser
 const PYBRICKS_RX          = "c5f50003-8280-46da-89f4-6d8051e4aeef"; // browser → hub
 const LWP3_SERVICE         = "00001623-1212-efde-1623-785feabcd123";
 const LWP3_CHAR            = "00001624-1212-efde-1623-785feabcd123";
-const WEDO2_SERVICE        = "00001523-1212-efde-1523-785feabcd123";
-const WEDO2_OUTPUT_CHAR    = "00001565-1212-efde-1523-785feabcd123"; // motor port 1/2
-const WEDO2_LED_CHAR       = "00001525-1212-efde-1523-785feabcd123"; // RGB LED
+const WEDO2_SERVICE        = "00001523-1212-efde-1523-785feabcd123"; // device service (advertised, used for filter)
+const WEDO2_IO_SERVICE     = "00004f0e-1212-efde-1523-785feabcd123"; // IO service (holds output char)
+const WEDO2_OUTPUT_CHAR    = "00001565-1212-efde-1523-785feabcd123"; // output command: motor (port 1/2) + LED (port 6)
 
 const hubBle = {
   device: null,
   server: null,
   rxChar: null,     // write-to-hub
   txChar: null,     // notifications from hub
-  wedo2LedChar: null, // WeDo 2.0 separate LED characteristic
   mode: null,       // "pybricks" | "lwp3" | "wedo2" | null
   _onData: null,
 
@@ -2215,7 +2214,7 @@ const hubBle = {
         { services: [LWP3_SERVICE] },
         { services: [WEDO2_SERVICE] }
       ],
-      optionalServices: [PYBRICKS_SERVICE, LWP3_SERVICE, WEDO2_SERVICE, WEDO2_OUTPUT_CHAR, WEDO2_LED_CHAR]
+      optionalServices: [PYBRICKS_SERVICE, LWP3_SERVICE, WEDO2_SERVICE, WEDO2_IO_SERVICE]
     });
 
     this.device = device;
@@ -2251,12 +2250,11 @@ const hubBle = {
       return;
     } catch (_) { /* not LWP3 — try WeDo 2.0 native */ }
 
-    // Try WeDo 2.0 native protocol (service 0x1523)
+    // Try WeDo 2.0 native protocol (advertised service 0x1523, output char in IO service 0x4f0e)
     try {
-      const svc = await this.server.getPrimaryService(WEDO2_SERVICE);
-      this.rxChar     = await svc.getCharacteristic(WEDO2_OUTPUT_CHAR);
-      this.wedo2LedChar = await svc.getCharacteristic(WEDO2_LED_CHAR);
-      this.txChar     = this.rxChar;
+      const ioSvc = await this.server.getPrimaryService(WEDO2_IO_SERVICE);
+      this.rxChar = await ioSvc.getCharacteristic(WEDO2_OUTPUT_CHAR);
+      this.txChar = this.rxChar;
       this.mode = "wedo2";
       appendTerminal("[BLE] WeDo 2.0 native protocol connected (motor + LED ready).\n");
       return;
@@ -2318,11 +2316,11 @@ const hubBle = {
    */
   async sendLwp3Motor(port, power) {
     if (this.mode === "wedo2") {
-      // WeDo 2.0 native: write [power_int8, connection_id] to output char
-      // port: 0x00=port1, 0x01=port2 → connection_id 1 or 2
+      // WeDo 2.0 native output command (4 bytes): [portId, 0x01 (motor power), 0x01 (len), power_byte]
+      // port: 0x00=port1, 0x01=port2 → portId 1 or 2. Negative power wraps via two's complement.
       const p = Math.max(-100, Math.min(100, Math.round(power)));
-      const connId = (port & 0xFF) + 1; // 0x00→1, 0x01→2
-      await this.rxChar.writeValueWithResponse(new Uint8Array([p & 0xFF, connId]));
+      const portId = (port & 0xFF) + 1; // 0x00→1, 0x01→2
+      await this.rxChar.writeValueWithResponse(new Uint8Array([portId, 0x01, 0x01, p & 0xFF]));
       return;
     }
     if (this.mode !== "lwp3") throw new Error("LWP3 mode required (stock firmware).");
@@ -2340,13 +2338,10 @@ const hubBle = {
    */
   async sendLwp3Led(color) {
     if (this.mode === "wedo2") {
-      // Map color index to RGB for WeDo 2.0
-      const RGB = [
-        [0,0,0],[255,0,128],[128,0,255],[0,0,255],[0,128,255],
-        [0,255,255],[0,255,0],[255,255,0],[255,128,0],[255,0,0],[255,255,255]
-      ];
-      const [r,g,b] = RGB[Math.min(Math.max(color,0), RGB.length-1)];
-      if (this.wedo2LedChar) await this.wedo2LedChar.writeValueWithResponse(new Uint8Array([r, g, b]));
+      // WeDo 2.0 RGB LED = virtual port 6, indexed-color mode via output char:
+      // [0x06 (port), 0x04 (write RGB/LED), 0x01 (len), colorIndex]
+      const idx = Math.min(Math.max(color, 0), 10);
+      await this.rxChar.writeValueWithResponse(new Uint8Array([0x06, 0x04, 0x01, idx]));
       return;
     }
     if (this.mode !== "lwp3") return;
@@ -2359,7 +2354,7 @@ const hubBle = {
     try { if (this.txChar) await this.txChar.stopNotifications(); } catch (_) {}
     try { if (this.server && this.server.connected) this.server.disconnect(); } catch (_) {}
     this.device = null; this.server = null; this.rxChar = null; this.txChar = null;
-    this.wedo2LedChar = null; this.mode = null;
+    this.mode = null;
   },
 
   _onDisconnect() {
