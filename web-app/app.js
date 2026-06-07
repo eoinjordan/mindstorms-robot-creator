@@ -2178,25 +2178,32 @@ async function readLmsBlob(file) {
 //   Pybricks UART RX char  : 'c5f50003-8280-46da-89f4-6d8051e4aeef' (write)
 //   LEGO LWP3 service      : '00001623-1212-efde-1623-785feabcd123'
 //   LEGO LWP3 char         : '00001624-1212-efde-1623-785feabcd123'
+//   WeDo 2.0 service       : '00001523-1212-efde-1523-785feabcd123'
+//   WeDo 2.0 output cmd    : '00001565-1212-efde-1523-785feabcd123' (motor port 1/2)
+//   WeDo 2.0 RGB LED       : '00001525-1212-efde-1523-785feabcd123'
 
 const PYBRICKS_SERVICE     = "c5f50001-8280-46da-89f4-6d8051e4aeef";
 const PYBRICKS_TX          = "c5f50002-8280-46da-89f4-6d8051e4aeef"; // hub → browser
 const PYBRICKS_RX          = "c5f50003-8280-46da-89f4-6d8051e4aeef"; // browser → hub
 const LWP3_SERVICE         = "00001623-1212-efde-1623-785feabcd123";
 const LWP3_CHAR            = "00001624-1212-efde-1623-785feabcd123";
+const WEDO2_SERVICE        = "00001523-1212-efde-1523-785feabcd123";
+const WEDO2_OUTPUT_CHAR    = "00001565-1212-efde-1523-785feabcd123"; // motor port 1/2
+const WEDO2_LED_CHAR       = "00001525-1212-efde-1523-785feabcd123"; // RGB LED
 
 const hubBle = {
   device: null,
   server: null,
   rxChar: null,     // write-to-hub
   txChar: null,     // notifications from hub
-  mode: null,       // "pybricks" | "lwp3" | null
+  wedo2LedChar: null, // WeDo 2.0 separate LED characteristic
+  mode: null,       // "pybricks" | "lwp3" | "wedo2" | null
   _onData: null,
 
   get connected() { return this.server !== null && this.server.connected; },
 
   async connect() {
-    // Try Pybricks first, then fall back to LWP3 (stock firmware)
+    // Try Pybricks first, then LWP3 (hub gen 2+), then WeDo 2.0 native protocol
     const device = await navigator.bluetooth.requestDevice({
       filters: [
         { namePrefix: "Pybricks" },
@@ -2205,9 +2212,10 @@ const hubBle = {
         { namePrefix: "LPF2 Smart Hub" },
         { namePrefix: "WeDo" },
         { services: [PYBRICKS_SERVICE] },
-        { services: [LWP3_SERVICE] }
+        { services: [LWP3_SERVICE] },
+        { services: [WEDO2_SERVICE] }
       ],
-      optionalServices: [PYBRICKS_SERVICE, LWP3_SERVICE]
+      optionalServices: [PYBRICKS_SERVICE, LWP3_SERVICE, WEDO2_SERVICE, WEDO2_OUTPUT_CHAR, WEDO2_LED_CHAR]
     });
 
     this.device = device;
@@ -2229,11 +2237,11 @@ const hubBle = {
       return;
     } catch (_) { /* no Pybricks service — try LWP3 */ }
 
-    // Fall back to LEGO LWP3 (stock firmware)
+    // Try LEGO LWP3 (stock firmware — Hub gen 2, Technic Hub, City Hub, etc.)
     try {
       const svc   = await this.server.getPrimaryService(LWP3_SERVICE);
       this.rxChar = await svc.getCharacteristic(LWP3_CHAR);
-      this.txChar = this.rxChar; // same char for notify + write on LWP3
+      this.txChar = this.rxChar;
       await this.rxChar.startNotifications();
       this.rxChar.addEventListener("characteristicvaluechanged", (e) => {
         const bytes = new Uint8Array(e.target.value.buffer);
@@ -2241,9 +2249,20 @@ const hubBle = {
       });
       this.mode = "lwp3";
       return;
-    } catch (_) { /* neither service found */ }
+    } catch (_) { /* not LWP3 — try WeDo 2.0 native */ }
 
-    throw new Error("Hub connected but no known service found. Only Pybricks and LEGO LWP3 are supported.");
+    // Try WeDo 2.0 native protocol (service 0x1523)
+    try {
+      const svc = await this.server.getPrimaryService(WEDO2_SERVICE);
+      this.rxChar     = await svc.getCharacteristic(WEDO2_OUTPUT_CHAR);
+      this.wedo2LedChar = await svc.getCharacteristic(WEDO2_LED_CHAR);
+      this.txChar     = this.rxChar;
+      this.mode = "wedo2";
+      appendTerminal("[BLE] WeDo 2.0 native protocol connected (motor + LED ready).\n");
+      return;
+    } catch (_) { /* WeDo 2.0 service not found */ }
+
+    throw new Error("Hub connected but no known service found. Supported: Pybricks, LEGO LWP3 (Hub gen 2+), WeDo 2.0 native.");
   },
 
   async write(text) {
@@ -2298,6 +2317,14 @@ const hubBle = {
    * This works on stock WeDo 2.0 / LEGO firmware without Pybricks.
    */
   async sendLwp3Motor(port, power) {
+    if (this.mode === "wedo2") {
+      // WeDo 2.0 native: write [power_int8, connection_id] to output char
+      // port: 0x00=port1, 0x01=port2 → connection_id 1 or 2
+      const p = Math.max(-100, Math.min(100, Math.round(power)));
+      const connId = (port & 0xFF) + 1; // 0x00→1, 0x01→2
+      await this.rxChar.writeValueWithResponse(new Uint8Array([p & 0xFF, connId]));
+      return;
+    }
     if (this.mode !== "lwp3") throw new Error("LWP3 mode required (stock firmware).");
     const p = Math.max(-100, Math.min(100, Math.round(power)));
     // LWP3 port output command: StartPower
@@ -2307,10 +2334,21 @@ const hubBle = {
   },
 
   /*
-   * sendLwp3Led — set the hub LED colour on stock firmware.
-   * color: 0=off, 1=pink, 2=purple, 3=blue, 4=cyan, 5=teal, 6=green, 7=yellow, 8=orange, 9=red
+   * sendLwp3Led — set the hub LED colour.
+   * WeDo 2.0: writes [r, g, b] to the RGB LED characteristic.
+   * LWP3: color index 0-9 to port 0x32.
    */
   async sendLwp3Led(color) {
+    if (this.mode === "wedo2") {
+      // Map color index to RGB for WeDo 2.0
+      const RGB = [
+        [0,0,0],[255,0,128],[128,0,255],[0,0,255],[0,128,255],
+        [0,255,255],[0,255,0],[255,255,0],[255,128,0],[255,0,0],[255,255,255]
+      ];
+      const [r,g,b] = RGB[Math.min(Math.max(color,0), RGB.length-1)];
+      if (this.wedo2LedChar) await this.wedo2LedChar.writeValueWithResponse(new Uint8Array([r, g, b]));
+      return;
+    }
     if (this.mode !== "lwp3") return;
     // Port 0x32 = hub LED
     const msg = new Uint8Array([0x08, 0x00, 0x81, 0x32, 0x11, 0x51, 0x00, color & 0xFF]);
@@ -2320,7 +2358,8 @@ const hubBle = {
   async disconnect() {
     try { if (this.txChar) await this.txChar.stopNotifications(); } catch (_) {}
     try { if (this.server && this.server.connected) this.server.disconnect(); } catch (_) {}
-    this.device = null; this.server = null; this.rxChar = null; this.txChar = null; this.mode = null;
+    this.device = null; this.server = null; this.rxChar = null; this.txChar = null;
+    this.wedo2LedChar = null; this.mode = null;
   },
 
   _onDisconnect() {
@@ -2894,7 +2933,7 @@ function updateHubPill() {
   if (bleConnectBtn)    bleConnectBtn.disabled    = bleConnected;
   if (bleDisconnectBtn) bleDisconnectBtn.disabled = !bleConnected;
   const isWeDo2Profile = !!(selectedProfile() && selectedProfile().family === "wedo2");
-  const wedo2LwpBlockly = bleConnected && hubBle.mode === "lwp3" && isWeDo2Profile && isBlocklyTarget();
+  const wedo2LwpBlockly = bleConnected && (hubBle.mode === "lwp3" || hubBle.mode === "wedo2") && isWeDo2Profile && isBlocklyTarget();
   if (bleRunBtn)        bleRunBtn.disabled        = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
   const runBleInlineBtn = el("runBleInlineBtn");
   if (runBleInlineBtn)  runBleInlineBtn.disabled  = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
@@ -2907,8 +2946,12 @@ function updateHubPill() {
     if (bleConnected) {
       if (hubBle.mode === "pybricks") {
         bleInfo.textContent = "\u2705 Pybricks firmware \u2014 full REPL available. Generate code and click \u201CRun via BLE\u201D.";
+      } else if (hubBle.mode === "wedo2" && isWeDo2Profile && isBlocklyTarget()) {
+        bleInfo.textContent = "\u2705 WeDo 2.0 native BLE connected. Blockly blocks execute directly as motor/LED commands. Click \u201CRun via BLE\u201D.";
+      } else if (hubBle.mode === "wedo2") {
+        bleInfo.textContent = "\u2705 WeDo 2.0 native BLE connected. Select a WeDo 2.0 profile and switch to Blockly target to run blocks.";
       } else if (isWeDo2Profile && isBlocklyTarget()) {
-        bleInfo.textContent = "\u2705 WeDo 2.0 stock firmware \u2014 Blockly blocks will execute directly over BLE as LWP3 motor/LED commands. Switch to Blockly target and click \u201CRun via BLE\u201D.";
+        bleInfo.textContent = "\u2705 WeDo 2.0 stock firmware (LWP3) \u2014 Blockly blocks will execute directly over BLE. Click \u201CRun via BLE\u201D.";
       } else {
         bleInfo.textContent = "\u26A0\uFE0F Stock LEGO firmware (LWP3). Select a WeDo 2.0 profile + Blockly target to run blocks directly, or flash Pybricks at code.pybricks.com for Python code execution.";
       }
@@ -2948,8 +2991,8 @@ async function doBleDisconnect() {
 async function doRunViaBle() {
   if (!hubBle.connected) { appendTerminal("[BLE] Not connected.\n"); return; }
   const profile = selectedProfile();
-  // WeDo 2.0 + stock firmware (LWP3) + Blockly — execute blocks directly as LWP3 commands
-  if (hubBle.mode === "lwp3" && profile && profile.family === "wedo2" && isBlocklyTarget()) {
+  // WeDo 2.0 native or LWP3 + Blockly — execute blocks directly as motor/LED commands
+  if ((hubBle.mode === "wedo2" || hubBle.mode === "lwp3") && profile && profile.family === "wedo2" && isBlocklyTarget()) {
     await executeWeDo2BlocklyViaBle(profile);
     return;
   }
