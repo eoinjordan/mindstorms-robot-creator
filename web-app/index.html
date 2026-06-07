@@ -136,6 +136,7 @@
           <button id="generateBtn" type="button">Generate</button>
           <button id="downloadLmsBtn" type="button">&#8595; Download .lms</button>
           <button id="runUsbBtn" type="button" disabled>&#9654; Run via USB</button>
+          <button id="runBleInlineBtn" type="button" class="btn-secondary" disabled title="Run via Bluetooth — connect on the Connect tab first">&#128274; Run via BLE</button>
           <button id="saveLmsBtn" type="button" class="btn-secondary">Save to server</button>
           <button id="customBlockBtn" type="button" class="btn-secondary" style="display:none" title="Create a custom Blockly block">&#10010; Block</button>
         </div>
@@ -206,6 +207,9 @@
           <div class="action-row">
             <button id="bleConnectBtn" type="button">&#128274; Connect via Bluetooth</button>
             <button id="bleDisconnectBtn" type="button" class="btn-secondary" disabled>Disconnect BLE</button>
+            <button id="bleRunBtn" type="button" class="btn-secondary" disabled>&#9654; Run via BLE</button>
+            <button id="bleSendReplBtn" type="button" class="btn-secondary" disabled>Send to BLE REPL</button>
+            <button id="bleMotorTestBtn" type="button" class="btn-secondary" disabled>&#9881; Motor Test (stock firmware)</button>
           </div>
           <div id="bleInfo" class="hub-info-box"></div>
           <div id="bleError" class="connect-error hidden"></div>

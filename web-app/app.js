@@ -2896,6 +2896,8 @@ function updateHubPill() {
   const isWeDo2Profile = !!(selectedProfile() && selectedProfile().family === "wedo2");
   const wedo2LwpBlockly = bleConnected && hubBle.mode === "lwp3" && isWeDo2Profile && isBlocklyTarget();
   if (bleRunBtn)        bleRunBtn.disabled        = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
+  const runBleInlineBtn = el("runBleInlineBtn");
+  if (runBleInlineBtn)  runBleInlineBtn.disabled  = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
   if (bleSendReplBtn)   bleSendReplBtn.disabled   = !(bleConnected && hubBle.mode === "pybricks");
   if (bleMotorTestBtn)  bleMotorTestBtn.disabled  = !(bleConnected && hubBle.mode === "lwp3");
 
@@ -3441,6 +3443,7 @@ document.addEventListener("DOMContentLoaded", () => {
   el("bleConnectBtn")?.addEventListener("click", doBleConnect);
   el("bleDisconnectBtn")?.addEventListener("click", doBleDisconnect);
   el("bleRunBtn")?.addEventListener("click", doRunViaBle);
+  el("runBleInlineBtn")?.addEventListener("click", doRunViaBle);
   el("bleSendReplBtn")?.addEventListener("click", doBleSendRepl);
   el("bleMotorTestBtn")?.addEventListener("click", doBleMotorTest);
 
