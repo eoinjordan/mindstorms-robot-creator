@@ -203,7 +203,8 @@ const FAMILY_TARGETS = {
   ],
   "wedo2": [
     { value: "wedo2-micropython",  label: "WeDo 2.0 App (MicroPython)" },
-    { value: "pybricks-city",      label: "Pybricks CityHub (Python)" }
+    { value: "pybricks-city",      label: "Pybricks CityHub (Python)" },
+    { value: "blockly-python",     label: "Blockly (Visual)" }
   ]
 };
 
@@ -1020,6 +1021,141 @@ const MS_BLOCKLY_BLOCKS = [
   }
 ];
 
+// ── WeDo 2.0 Blockly block definitions ────────────────────────────────────────
+const WEDO2_BLOCKLY_BLOCKS = [
+  {
+    "type": "wd_led",
+    "message0": "hub LED %1",
+    "args0": [{ "type": "field_dropdown", "name": "COLOR", "options": [
+      ["off","0"],["pink","1"],["purple","2"],["blue","3"],["light blue","4"],
+      ["cyan","5"],["green","6"],["yellow","7"],["orange","8"],["red","9"],["white","10"]
+    ]}],
+    "previousStatement": null, "nextStatement": null, "colour": "#e47b00"
+  },
+  {
+    "type": "wd_motor_run",
+    "message0": "motor %1 run for %2 s at %3 %%",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"]] },
+      { "type": "field_number", "name": "SECS", "value": 1, "min": 0.1, "max": 30 },
+      { "type": "field_number", "name": "SPEED", "value": 50, "min": -100, "max": 100 }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "wd_motor_start",
+    "message0": "motor %1 start at %2 %%",
+    "args0": [
+      { "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"]] },
+      { "type": "field_number", "name": "SPEED", "value": 50, "min": -100, "max": 100 }
+    ],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "wd_motor_stop",
+    "message0": "motor %1 stop",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"]] }],
+    "previousStatement": null, "nextStatement": null, "colour": "#b45309"
+  },
+  {
+    "type": "wd_motion_distance",
+    "message0": "motion sensor %1 distance (0-10)",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"]] }],
+    "output": "Number", "colour": "#0284c7"
+  },
+  {
+    "type": "wd_motion_detected",
+    "message0": "motion sensor %1 detects something",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"]] }],
+    "output": "Boolean", "colour": "#0284c7"
+  },
+  {
+    "type": "wd_tilt_angle",
+    "message0": "hub tilt %1 angle",
+    "args0": [{ "type": "field_dropdown", "name": "AXIS", "options": [
+      ["pitch","pitch"],["roll","roll"]
+    ]}],
+    "output": "Number", "colour": "#0284c7"
+  },
+  {
+    "type": "wd_wait",
+    "message0": "wait %1 seconds",
+    "args0": [{ "type": "field_number", "name": "SECS", "value": 1, "min": 0.1, "max": 60 }],
+    "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
+  },
+  {
+    "type": "wd_wait_motion",
+    "message0": "wait until motion sensor %1 detects something",
+    "args0": [{ "type": "field_dropdown", "name": "PORT", "options": [["A","A"],["B","B"]] }],
+    "previousStatement": null, "nextStatement": null, "colour": "#5c6bc0"
+  },
+  {
+    "type": "wd_print",
+    "message0": "print %1",
+    "args0": [{ "type": "field_input", "name": "TEXT", "text": "Hello" }],
+    "previousStatement": null, "nextStatement": null, "colour": "#607d8b"
+  }
+];
+
+const WEDO2_BLOCKLY_TOOLBOX = {
+  "kind": "categoryToolbox",
+  "contents": [
+    { "kind": "category", "name": "Hub", "colour": "#e47b00",
+      "contents": [
+        { "kind": "block", "type": "wd_led" }
+      ]
+    },
+    { "kind": "category", "name": "Motors", "colour": "#b45309",
+      "contents": [
+        { "kind": "block", "type": "wd_motor_run" },
+        { "kind": "block", "type": "wd_motor_start" },
+        { "kind": "block", "type": "wd_motor_stop" }
+      ]
+    },
+    { "kind": "category", "name": "Motion Sensor", "colour": "#0284c7",
+      "contents": [
+        { "kind": "block", "type": "wd_motion_distance" },
+        { "kind": "block", "type": "wd_motion_detected" },
+        { "kind": "block", "type": "wd_tilt_angle" }
+      ]
+    },
+    { "kind": "category", "name": "Control", "colour": "#5c6bc0",
+      "contents": [
+        { "kind": "block", "type": "wd_wait" },
+        { "kind": "block", "type": "wd_wait_motion" },
+        { "kind": "block", "type": "controls_repeat_ext",
+          "inputs": { "TIMES": { "shadow": { "type": "math_number", "fields": { "NUM": 3 } } } }
+        },
+        { "kind": "block", "type": "controls_whileUntil" },
+        { "kind": "block", "type": "controls_if" },
+        { "kind": "block", "type": "controls_if", "extraState": { "hasElse": true } }
+      ]
+    },
+    { "kind": "category", "name": "Debug", "colour": "#607d8b",
+      "contents": [
+        { "kind": "block", "type": "wd_print" }
+      ]
+    },
+    { "kind": "sep" },
+    { "kind": "category", "name": "Logic", "colour": "%{BKY_LOGIC_HUE}",
+      "contents": [
+        { "kind": "block", "type": "logic_compare" },
+        { "kind": "block", "type": "logic_operation" },
+        { "kind": "block", "type": "logic_negate" },
+        { "kind": "block", "type": "logic_boolean" }
+      ]
+    },
+    { "kind": "category", "name": "Math", "colour": "%{BKY_MATH_HUE}",
+      "contents": [
+        { "kind": "block", "type": "math_number" },
+        { "kind": "block", "type": "math_arithmetic" },
+        { "kind": "block", "type": "math_random_int" }
+      ]
+    },
+    { "kind": "category", "name": "Variables", "colour": "%{BKY_VARIABLES_HUE}", "custom": "VARIABLE" }
+  ]
+};
+
 const BLOCKLY_TOOLBOX = {
   "kind": "categoryToolbox",
   "contents": [
@@ -1168,12 +1304,40 @@ function registerBlocklyGenerators() {
   Py["ms_print_val"]= (b, gen) => `print("${b.getFieldValue("LABEL")}:", ${gen.valueToCode(b, "VAL", Blockly.Python.ORDER_NONE) || "None"})\n`;
 }
 
+function registerWeDo2BlocklyGenerators() {
+  const Py = Blockly.Python;
+  // Hub
+  Py["wd_led"]            = b => `hub.led(${b.getFieldValue("COLOR")})\n`;
+  // Motors (hub.port.X.motor API)
+  Py["wd_motor_run"]      = b => `hub.port.${b.getFieldValue("PORT")}.motor.run_for_seconds(speed=${b.getFieldValue("SPEED")}, seconds=${b.getFieldValue("SECS")})\n`;
+  Py["wd_motor_start"]    = b => `hub.port.${b.getFieldValue("PORT")}.motor.start(speed=${b.getFieldValue("SPEED")})\n`;
+  Py["wd_motor_stop"]     = b => `hub.port.${b.getFieldValue("PORT")}.motor.stop()\n`;
+  // Motion sensor
+  Py["wd_motion_distance"]= b => [`hub.port.${b.getFieldValue("PORT")}.device.get()[0]`, Blockly.Python.ORDER_SUBSCRIPT];
+  Py["wd_motion_detected"]= b => [`(hub.port.${b.getFieldValue("PORT")}.device.get()[0] is not None and hub.port.${b.getFieldValue("PORT")}.device.get()[0] < 10)`, Blockly.Python.ORDER_RELATIONAL];
+  Py["wd_tilt_angle"]     = b => {
+    const axis = b.getFieldValue("AXIS");
+    const idx  = axis === "pitch" ? 0 : 1;
+    return [`hub.motion.tilt_angles()[${idx}]`, Blockly.Python.ORDER_SUBSCRIPT];
+  };
+  // Control
+  Py["wd_wait"]           = b => `time.sleep(${b.getFieldValue("SECS")})\n`;
+  Py["wd_wait_motion"]    = b => `while hub.port.${b.getFieldValue("PORT")}.device.get()[0] is None or hub.port.${b.getFieldValue("PORT")}.device.get()[0] >= 10: time.sleep(0.05)\n`;
+  // Debug
+  Py["wd_print"]          = b => `print("${b.getFieldValue("TEXT").replace(/"/g, '\\"')}")\n`;
+}
+
 function initBlockly() {
   if (blocklyWorkspace || !window.Blockly) return;
+  const profile = selectedProfile();
+  const isWeDo = profile && profile.family === "wedo2";
   Blockly.defineBlocksWithJsonArray(MS_BLOCKLY_BLOCKS);
+  Blockly.defineBlocksWithJsonArray(WEDO2_BLOCKLY_BLOCKS);
   registerBlocklyGenerators();
+  registerWeDo2BlocklyGenerators();
+  const toolbox = isWeDo ? WEDO2_BLOCKLY_TOOLBOX : BLOCKLY_TOOLBOX;
   blocklyWorkspace = Blockly.inject("blocklyDiv", {
-    toolbox: BLOCKLY_TOOLBOX,
+    toolbox,
     grid: { spacing: 20, length: 3, colour: "#1e3040", snap: true },
     trashcan: true,
     zoom: { controls: true, wheel: true, startScale: 1.0 }
@@ -1361,7 +1525,81 @@ function renderCbSavedList() {
   });
 }
 
+/* ── WeDo 2.0 Blockly intent starter XML ─────────────────────────────────── */
+function buildWeDo2BlocklyIntentXml(profile, intent) {
+  const ports   = profile.ports || {};
+  const motors  = Object.entries(ports).filter(([, p]) => p.kind === "motor");
+  const sensors = Object.entries(ports).filter(([, p]) => p.kind === "sensor");
+  const motorPort  = motors.length  ? motors[0][0]  : "A";
+  const sensorPort = sensors.length ? sensors[0][0] : "B";
+
+  function chain(defs, x = 30, y = 30) {
+    if (!defs.length) return "";
+    function build(i) {
+      if (i >= defs.length) return "";
+      const d = defs[i];
+      const fields = Object.entries(d.fields || {}).map(([k, v]) => `<field name="${k}">${v}</field>`).join("");
+      const next   = build(i + 1);
+      const xy     = i === 0 ? ` x="${x}" y="${y}"` : "";
+      return `<block type="${d.type}"${xy}>${fields}${next ? `<next>${next}</next>` : ""}</block>`;
+    }
+    return build(0);
+  }
+  function repeatBlock(times, innerDefs, x = 30, y = 30) {
+    const inner = chain(innerDefs);
+    return `<block type="controls_repeat_ext" x="${x}" y="${y}">
+      <value name="TIMES"><shadow type="math_number"><field name="NUM">${times}</field></shadow></value>
+      ${inner ? `<statement name="DO">${inner}</statement>` : ""}
+    </block>`;
+  }
+
+  let xml = "";
+
+  if (intent === "beep_hello") {
+    xml = chain([
+      { type: "wd_led",   fields: { COLOR: "6" } },   /* green */
+      { type: "wd_wait",  fields: { SECS: 0.5 } },
+      { type: "wd_led",   fields: { COLOR: "0" } },   /* off */
+      { type: "wd_print", fields: { TEXT: "Hello from WeDo 2.0!" } }
+    ]);
+  } else if (intent === "safe_probe") {
+    const defs = [
+      { type: "wd_led",  fields: { COLOR: "7" } },   /* yellow */
+      ...motors.flatMap(([port]) => [
+        { type: "wd_print",      fields: { TEXT: `Testing port ${port}` } },
+        { type: "wd_motor_run",  fields: { PORT: port, SECS: 1, SPEED: 50 } },
+        { type: "wd_wait",       fields: { SECS: 0.5 } },
+        { type: "wd_motor_run",  fields: { PORT: port, SECS: 1, SPEED: -50 } },
+        { type: "wd_wait",       fields: { SECS: 0.5 } }
+      ]),
+      { type: "wd_led",   fields: { COLOR: "6" } },   /* green */
+      { type: "wd_print", fields: { TEXT: "Probe complete" } }
+    ];
+    xml = chain(defs);
+  } else if (intent === "drive_forward") {
+    xml = chain([
+      { type: "wd_led",       fields: { COLOR: "6" } },
+      { type: "wd_motor_run", fields: { PORT: motorPort, SECS: 2, SPEED: 60 } },
+      { type: "wd_led",       fields: { COLOR: "0" } }
+    ]);
+  } else if (intent === "wave") {
+    xml = repeatBlock(3, [
+      { type: "wd_motor_run", fields: { PORT: motorPort, SECS: 0.5, SPEED:  70 } },
+      { type: "wd_motor_run", fields: { PORT: motorPort, SECS: 0.5, SPEED: -70 } }
+    ]);
+  } else {
+    xml = chain([{ type: "wd_led", fields: { COLOR: "6" } }, { type: "wd_wait", fields: { SECS: 1 } }]);
+  }
+
+  return `<xml xmlns="https://developers.google.com/blockly/xml">${xml}</xml>`;
+}
+
 function buildBlocklyIntentXml(profile, intent) {
+  // Dispatch to WeDo 2.0-specific builder for wedo2 family
+  if (profile && profile.family === "wedo2") {
+    return buildWeDo2BlocklyIntentXml(profile, intent);
+  }
+
   const motors  = Object.entries(profile.ports || {}).filter(([, p]) => p.kind === "motor");
   const sensors = Object.entries(profile.ports || {}).filter(([, p]) => p.kind === "sensor");
   const drives  = motors.filter(([, p]) => /drive|wheel/.test(p.role));
@@ -1476,32 +1714,57 @@ function loadBlocklyIntent(profile, intent) {
 function getBlocklyPython(profile) {
   if (!blocklyWorkspace || !window.Blockly) return "";
   const body = Blockly.Python.workspaceToCode(blocklyWorkspace);
-  const header = [
-    `# ${profile.name} — ${profile.kit || "Robot Inventor 51515"}`,
-    `# Target: blockly-python (Blockly visual → Python)`,
-    `# Generated by Mindstorms Robot Creator`,
-    ``,
-    `from mindstorms import MSHub, Motor, MotorPair, ColorSensor, DistanceSensor, App`,
-    `from mindstorms.control import wait_for_seconds, wait_until, Timer`,
-    `from mindstorms.color import BLACK, WHITE, RED, GREEN, BLUE, YELLOW`,
-    `import math`,
-    ``,
-    `hub = MSHub()`,
-    ``
-  ].join("\n");
+  let header;
+  if (profile && profile.family === "wedo2") {
+    header = [
+      `# ${profile.name} — ${profile.kit || "LEGO Education WeDo 2.0 45300"}`,
+      `# Target: blockly-python → WeDo 2.0 hub module (MicroPython)`,
+      `# Generated by Mindstorms Robot Creator`,
+      ``,
+      `import hub`,
+      `import time`,
+      ``
+    ].join("\n");
+  } else {
+    header = [
+      `# ${profile ? profile.name : "Robot"} — ${profile ? (profile.kit || "Robot Inventor 51515") : ""}`,
+      `# Target: blockly-python (Blockly visual → Python)`,
+      `# Generated by Mindstorms Robot Creator`,
+      ``,
+      `from mindstorms import MSHub, Motor, MotorPair, ColorSensor, DistanceSensor, App`,
+      `from mindstorms.control import wait_for_seconds, wait_until, Timer`,
+      `from mindstorms.color import BLACK, WHITE, RED, GREEN, BLUE, YELLOW`,
+      `import math`,
+      ``,
+      `hub = MSHub()`,
+      ``
+    ].join("\n");
+  }
   return header + body;
 }
 
 async function showBlocklyEditor() {
   el("editorWrap").style.display = "none";
-  el("customBlockBtn").style.display = "";
+  // Hide custom block button for WeDo 2.0 (simpler palette)
+  const profile = selectedProfile();
+  el("customBlockBtn").style.display = (profile && profile.family === "wedo2") ? "none" : "";
   const div = el("blocklyDiv");
   div.style.display = "block";
   setCodeStatus("Loading Blockly...");
   try {
     await loadBlocklyScripts();
     void div.offsetWidth; void div.offsetHeight;
+    // Destroy and re-init if family changed so toolbox switches correctly
+    if (blocklyWorkspace) {
+      const prevIsWeDo = blocklyWorkspace._isWeDo2 || false;
+      const nowIsWeDo  = !!(profile && profile.family === "wedo2");
+      if (prevIsWeDo !== nowIsWeDo) {
+        blocklyWorkspace.dispose();
+        blocklyWorkspace = null;
+      }
+    }
     initBlockly();
+    if (blocklyWorkspace) blocklyWorkspace._isWeDo2 = !!(profile && profile.family === "wedo2");
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (blocklyWorkspace) Blockly.svgResize(blocklyWorkspace);
       // Auto-populate with the current intent immediately after init
@@ -2009,6 +2272,49 @@ const hubBle = {
       throw new Error("REPL requires Pybricks firmware. Hub is running stock LEGO firmware (LWP3).");
     }
     await this.write(line + "\r\n");
+  },
+
+  /*
+   * runPybricksCode — upload and execute a full Python program via Pybricks BLE REPL.
+   * Sends Ctrl+C to interrupt, then pastes the code line by line.
+   */
+  async runPybricksCode(pythonSource) {
+    if (this.mode !== "pybricks") throw new Error("Pybricks firmware required for BLE code upload.");
+    // Interrupt running program
+    await this.write("\x03\x03");
+    await new Promise(r => setTimeout(r, 300));
+    // Paste each line
+    const lines = pythonSource.split("\n");
+    for (const line of lines) {
+      await this.write(line + "\r\n");
+      await new Promise(r => setTimeout(r, 20));
+    }
+  },
+
+  /*
+   * sendLwp3Motor — send a minimal LWP3 motor output command to stock firmware.
+   * port: 0x00=A, 0x01=B
+   * power: -100..100 (signed)
+   * This works on stock WeDo 2.0 / LEGO firmware without Pybricks.
+   */
+  async sendLwp3Motor(port, power) {
+    if (this.mode !== "lwp3") throw new Error("LWP3 mode required (stock firmware).");
+    const p = Math.max(-100, Math.min(100, Math.round(power)));
+    // LWP3 port output command: StartPower
+    // [len, 0x00, 0x81, port, 0x11, 0x51, 0x00, power_int8]
+    const msg = new Uint8Array([0x08, 0x00, 0x81, port & 0xFF, 0x11, 0x51, 0x00, p & 0xFF]);
+    await this.rxChar.writeValueWithResponse(msg);
+  },
+
+  /*
+   * sendLwp3Led — set the hub LED colour on stock firmware.
+   * color: 0=off, 1=pink, 2=purple, 3=blue, 4=cyan, 5=teal, 6=green, 7=yellow, 8=orange, 9=red
+   */
+  async sendLwp3Led(color) {
+    if (this.mode !== "lwp3") return;
+    // Port 0x32 = hub LED
+    const msg = new Uint8Array([0x08, 0x00, 0x81, 0x32, 0x11, 0x51, 0x00, color & 0xFF]);
+    await this.rxChar.writeValueWithResponse(msg);
   },
 
   async disconnect() {
@@ -2557,20 +2863,224 @@ async function doSummarize() {
 
 function updateHubPill() {
   const pill = el("hubPill");
-  if (hubSerial.connected) {
-    pill.textContent = "\u25CF hub connected";
-    pill.className = "pill pill-on";
-    el("runUsbBtn").disabled = false;
-    el("sendReplBtn").disabled = false;
-    el("disconnectBtn").disabled = false;
-    el("connectBtn").disabled = true;
+  const bleConnected = hubBle.connected;
+  const usbConnected = hubSerial.connected;
+
+  if (bleConnected) {
+    const modeLabel = hubBle.mode === "pybricks" ? "Pybricks BLE" : "Stock BLE (LWP3)";
+    const devName   = hubBle.device ? hubBle.device.name || "BLE Hub" : "BLE Hub";
+    pill.textContent = `\u25CF ${devName} \u2014 ${modeLabel}`;
+    pill.className   = "pill pill-on";
+  } else if (usbConnected) {
+    pill.textContent = "\u25CF hub connected (USB)";
+    pill.className   = "pill pill-on";
   } else {
     pill.textContent = "\u25CF hub disconnected";
-    pill.className = "pill pill-off";
-    el("runUsbBtn").disabled = true;
-    el("sendReplBtn").disabled = true;
-    el("disconnectBtn").disabled = true;
-    el("connectBtn").disabled = false;
+    pill.className   = "pill pill-off";
+  }
+
+  /* USB controls */
+  el("runUsbBtn").disabled   = !usbConnected;
+  el("sendReplBtn").disabled = !(usbConnected || bleConnected);
+  el("disconnectBtn").disabled  = !usbConnected;
+  el("connectBtn").disabled     = usbConnected;
+
+  /* BLE controls */
+  const bleConnectBtn    = el("bleConnectBtn");
+  const bleDisconnectBtn = el("bleDisconnectBtn");
+  const bleRunBtn        = el("bleRunBtn");
+  const bleSendReplBtn   = el("bleSendReplBtn");
+  const bleMotorTestBtn  = el("bleMotorTestBtn");
+  if (bleConnectBtn)    bleConnectBtn.disabled    = bleConnected;
+  if (bleDisconnectBtn) bleDisconnectBtn.disabled = !bleConnected;
+  const isWeDo2Profile = !!(selectedProfile() && selectedProfile().family === "wedo2");
+  const wedo2LwpBlockly = bleConnected && hubBle.mode === "lwp3" && isWeDo2Profile && isBlocklyTarget();
+  if (bleRunBtn)        bleRunBtn.disabled        = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
+  if (bleSendReplBtn)   bleSendReplBtn.disabled   = !(bleConnected && hubBle.mode === "pybricks");
+  if (bleMotorTestBtn)  bleMotorTestBtn.disabled  = !(bleConnected && hubBle.mode === "lwp3");
+
+  /* Show/hide mode-specific rows */
+  const bleInfo = el("bleInfo");
+  if (bleInfo) {
+    if (bleConnected) {
+      if (hubBle.mode === "pybricks") {
+        bleInfo.textContent = "\u2705 Pybricks firmware \u2014 full REPL available. Generate code and click \u201CRun via BLE\u201D.";
+      } else if (isWeDo2Profile && isBlocklyTarget()) {
+        bleInfo.textContent = "\u2705 WeDo 2.0 stock firmware \u2014 Blockly blocks will execute directly over BLE as LWP3 motor/LED commands. Switch to Blockly target and click \u201CRun via BLE\u201D.";
+      } else {
+        bleInfo.textContent = "\u26A0\uFE0F Stock LEGO firmware (LWP3). Select a WeDo 2.0 profile + Blockly target to run blocks directly, or flash Pybricks at code.pybricks.com for Python code execution.";
+      }
+    } else {
+      bleInfo.textContent = "";
+    }
+  }
+}
+
+/* ── BLE connect / disconnect ─────────────────────────────────────────────── */
+
+async function doBleConnect() {
+  el("bleError")?.classList.add("hidden");
+  try {
+    appendTerminal("[BLE] Scanning for hub...\n");
+    await hubBle.connect();
+    hubBle._onData = txt => appendTerminal("[BLE] " + txt);
+    const devName = hubBle.device?.name || "Unknown";
+    appendTerminal(`[BLE] Connected to "${devName}" (mode: ${hubBle.mode})\n`);
+    updateHubPill();
+  } catch (err) {
+    const msg = err.name === "NotFoundError" ? "No device selected — make sure the hub is on and in range." : err.message;
+    appendTerminal(`[BLE] Connect failed: ${msg}\n`);
+    const div = el("bleError");
+    if (div) { div.textContent = msg; div.classList.remove("hidden"); }
+  }
+}
+
+async function doBleDisconnect() {
+  await hubBle.disconnect();
+  appendTerminal("[BLE] Disconnected.\n");
+  updateHubPill();
+}
+
+/* ── BLE run / REPL ───────────────────────────────────────────────────────── */
+
+async function doRunViaBle() {
+  if (!hubBle.connected) { appendTerminal("[BLE] Not connected.\n"); return; }
+  const profile = selectedProfile();
+  // WeDo 2.0 + stock firmware (LWP3) + Blockly — execute blocks directly as LWP3 commands
+  if (hubBle.mode === "lwp3" && profile && profile.family === "wedo2" && isBlocklyTarget()) {
+    await executeWeDo2BlocklyViaBle(profile);
+    return;
+  }
+  if (hubBle.mode !== "pybricks") {
+    appendTerminal("[BLE] Error: Pybricks firmware required for code upload. For WeDo 2.0 stock firmware, use Blockly and click Run.\n"); return;
+  }
+  const src = isBlocklyTarget() ? getBlocklyPython(profile) : el("editorArea") && CodeMirror ? el("editorArea").nextSibling?.CodeMirror?.getValue() || "" : "";
+  const code = src || (editor ? editor.getValue() : "");
+  if (!code.trim()) { appendTerminal("[BLE] Nothing to run — generate code first.\n"); return; }
+  try {
+    appendTerminal("[BLE] Uploading program...\n");
+    await hubBle.runPybricksCode(code);
+    appendTerminal("[BLE] Program sent.\n");
+  } catch (err) {
+    appendTerminal(`[BLE] Run failed: ${err.message}\n`);
+  }
+}
+
+/*
+ * executeWeDo2BlocklyViaBle — walk the WeDo 2.0 Blockly workspace and execute
+ * each block as a direct LWP3 command over BLE. Works with stock hub firmware.
+ */
+async function executeWeDo2BlocklyViaBle(profile) {
+  if (!blocklyWorkspace || !window.Blockly) {
+    appendTerminal("[BLE] Open Blockly editor first.\n"); return;
+  }
+  const portNum = p => p === "B" ? 0x01 : 0x00;
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  // Collect top-level statement blocks in order
+  const topBlocks = blocklyWorkspace.getTopBlocks(true)
+    .filter(b => b.previousConnection === null);
+
+  if (!topBlocks.length) {
+    appendTerminal("[BLE] No blocks to run.\n"); return;
+  }
+
+  appendTerminal("[BLE] Running WeDo 2.0 Blockly program over LWP3...\n");
+
+  // Walk the linked list starting from each top block
+  async function runChain(block) {
+    let b = block;
+    while (b) {
+      const type = b.type;
+      try {
+        if (type === "wd_led") {
+          const color = parseInt(b.getFieldValue("COLOR") || "0", 10);
+          await hubBle.sendLwp3Led(color);
+          appendTerminal(`[BLE] LED → color ${color}\n`);
+
+        } else if (type === "wd_motor_run") {
+          const port  = b.getFieldValue("PORT") || "A";
+          const speed = parseInt(b.getFieldValue("SPEED") || "50", 10);
+          const secs  = parseFloat(b.getFieldValue("SECS") || "1");
+          await hubBle.sendLwp3Motor(portNum(port), speed);
+          appendTerminal(`[BLE] Motor ${port} run ${speed}% for ${secs}s\n`);
+          await delay(Math.round(secs * 1000));
+          await hubBle.sendLwp3Motor(portNum(port), 0);
+
+        } else if (type === "wd_motor_start") {
+          const port  = b.getFieldValue("PORT") || "A";
+          const speed = parseInt(b.getFieldValue("SPEED") || "50", 10);
+          await hubBle.sendLwp3Motor(portNum(port), speed);
+          appendTerminal(`[BLE] Motor ${port} start ${speed}%\n`);
+
+        } else if (type === "wd_motor_stop") {
+          const port = b.getFieldValue("PORT") || "A";
+          await hubBle.sendLwp3Motor(portNum(port), 0);
+          appendTerminal(`[BLE] Motor ${port} stop\n`);
+
+        } else if (type === "wd_wait") {
+          const secs = parseFloat(b.getFieldValue("SECS") || "1");
+          appendTerminal(`[BLE] Wait ${secs}s\n`);
+          await delay(Math.round(secs * 1000));
+
+        } else if (type === "wd_print") {
+          const text = b.getFieldValue("TEXT") || "";
+          appendTerminal(`[BLE] Print: ${text}\n`);
+
+        } else if (type === "wd_wait_motion") {
+          // Can't poll sensor from browser over LWP3 without notification setup — just wait 2s
+          appendTerminal("[BLE] wait_motion — waiting 2s (sensor polling not available on stock firmware)\n");
+          await delay(2000);
+        }
+        // sensor output blocks (wd_motion_distance, wd_motion_detected, wd_tilt_angle)
+        // are value blocks — they appear as inputs, not statement chains, so skip here
+      } catch (err) {
+        appendTerminal(`[BLE] Block error (${type}): ${err.message}\n`);
+      }
+      b = b.getNextBlock ? b.getNextBlock() : null;
+    }
+  }
+
+  try {
+    for (const top of topBlocks) { await runChain(top); }
+    appendTerminal("[BLE] Done.\n");
+  } catch (err) {
+    appendTerminal(`[BLE] Program error: ${err.message}\n`);
+  }
+}
+
+async function doBleSendRepl() {
+  const line = el("terminalInput")?.value?.trim();
+  if (!line) return;
+  appendTerminal(`> ${line}\n`);
+  try {
+    if (hubBle.connected && hubBle.mode === "pybricks") {
+      await hubBle.sendRepl(line);
+    } else if (hubSerial.connected) {
+      const out = await hubSerial.sendRepl(line);
+      appendTerminal(out);
+    } else {
+      appendTerminal("[BLE] Not connected.\n");
+    }
+  } catch (err) {
+    appendTerminal(`Error: ${err.message}\n`);
+  }
+}
+
+async function doBleMotorTest() {
+  if (!hubBle.connected || hubBle.mode !== "lwp3") {
+    appendTerminal("[BLE] Stock firmware (LWP3) required for motor test.\n"); return;
+  }
+  appendTerminal("[BLE] Motor test: Port A forward 1s...\n");
+  try {
+    await hubBle.sendLwp3Led(6);           // green
+    await hubBle.sendLwp3Motor(0x00,  60); // Port A forward
+    await new Promise(r => setTimeout(r, 1000));
+    await hubBle.sendLwp3Motor(0x00,   0); // stop
+    await hubBle.sendLwp3Led(0);           // off
+    appendTerminal("[BLE] Motor test done.\n");
+  } catch (err) {
+    appendTerminal(`[BLE] Motor test failed: ${err.message}\n`);
   }
 }
 
@@ -2634,8 +3144,12 @@ async function doSendRepl() {
   if (!line.trim()) return;
   appendTerminal(`> ${line}\n`);
   try {
-    const out = await hubSerial.sendRepl(line);
-    appendTerminal(out);
+    if (hubBle.connected && hubBle.mode === "pybricks") {
+      await hubBle.sendRepl(line);
+    } else {
+      const out = await hubSerial.sendRepl(line);
+      appendTerminal(out);
+    }
   } catch (err) {
     appendTerminal(`Error: ${err.message}\n`);
   }
@@ -2923,7 +3437,14 @@ document.addEventListener("DOMContentLoaded", () => {
   el("handoffBtn").addEventListener("click", doHandoff);
   el("summaryBtn").addEventListener("click", doSummarize);
 
-  // Connect tab
+  // Connect tab — BLE
+  el("bleConnectBtn")?.addEventListener("click", doBleConnect);
+  el("bleDisconnectBtn")?.addEventListener("click", doBleDisconnect);
+  el("bleRunBtn")?.addEventListener("click", doRunViaBle);
+  el("bleSendReplBtn")?.addEventListener("click", doBleSendRepl);
+  el("bleMotorTestBtn")?.addEventListener("click", doBleMotorTest);
+
+  // Connect tab — USB
   el("connectBtn").addEventListener("click", doConnect);
   el("disconnectBtn").addEventListener("click", doDisconnect);
   el("sendReplBtn").addEventListener("click", doSendRepl);
