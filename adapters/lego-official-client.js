@@ -19,6 +19,16 @@ const KNOWN_CLIENTS = [
     executable: null,
     processPatterns: ["MINDSTORMS", "LEGOMINDSTORMSInventor", "Robot Inventor"],
     role: "official Robot Inventor 51515 programming client"
+  },
+  {
+    id: "wedo2-app",
+    name: "LEGO Education WeDo 2.0",
+    family: "wedo2",
+    installPath: "C:\\Program Files\\LEGO Education WeDo 2.0",
+    executable: null,
+    processPatterns: ["WeDo", "LEGO WeDo", "WeDo2", "LEGOEducationWeDo"],
+    role: "official WeDo 2.0 programming client (available until July 31 2026)",
+    eolDate: "2026-07-31"
   }
 ];
 
@@ -133,6 +143,7 @@ $items | ConvertTo-Json -Compress
     running: processes.length > 0,
     mindstormsRunning: clients.some((client) => client.id === "robot-inventor-51515" && client.running),
     ev3ClassroomRunning: clients.some((client) => client.id === "ev3-classroom" && client.running),
+    wedo2Running: clients.some((client) => client.id === "wedo2-app" && client.running),
     platform: process.platform,
     clients,
     processes,
@@ -140,7 +151,8 @@ $items | ConvertTo-Json -Compress
     stderr: result.stderr.trim() || undefined,
     notes: [
       "Use the official LEGO client for manual firmware/install/app workflows.",
-      "Use this MCP/action server for status, profile data, generated code, datasets, and safe handoffs."
+      "Use this MCP/action server for status, profile data, generated code, datasets, and safe handoffs.",
+      "WeDo 2.0 App: available until July 31 2026. Migrate to Pybricks CityHub target for ongoing use."
     ]
   };
 }

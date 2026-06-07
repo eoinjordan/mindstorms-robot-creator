@@ -1,0 +1,25 @@
+{
+  "id": "wedo2-custom",
+  "name": "WeDo 2.0 Custom",
+  "family": "wedo2",
+  "kit": "LEGO Education WeDo 2.0 45300",
+  "robotKind": "custom_build",
+  "needsConfirmation": true,
+  "crossGenNotes": "Custom WeDo 2.0 build. Edit port assignments to match your robot. Port A and B accept any WeDo 2.0 motor or sensor.",
+  "controller": {
+    "model": "LPF2 Smart Hub 2 I/O (WeDo 2.0 Smart Hub 45301)",
+    "firmware": "wedo2-hub-or-pybricks-cityhub",
+    "connection": ["ble"]
+  },
+  "ports": {
+    "A": { "kind": "motor",  "part": "wedo2-medium-motor", "role": "motor_a" },
+    "B": { "kind": "motor",  "part": "wedo2-medium-motor", "role": "motor_b" }
+  },
+  "sensors": [
+    { "kind": "tilt",         "source": "hub-builtin" },
+    { "kind": "accelerometer","source": "hub-builtin" }
+  ],
+  "programTargets": ["wedo2-micropython", "pybricks-city"],
+  "notes": "WeDo 2.0 App available until July 31 2026. Replace port A/B assignments with your actual attached devices.",
+  "license": "CC-BY-4.0"
+}

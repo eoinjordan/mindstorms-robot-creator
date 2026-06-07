@@ -1,0 +1,25 @@
+{
+  "id": "wedo2-milo",
+  "name": "Milo",
+  "family": "wedo2",
+  "kit": "LEGO Education WeDo 2.0 45300",
+  "robotKind": "science_rover",
+  "crossGenNotes": "Science rover with motion sensor. Two-port LPF2 hub. Connects via BLE as 'LPF2 Smart Hub 2 I/O'.",
+  "controller": {
+    "model": "LPF2 Smart Hub 2 I/O (WeDo 2.0 Smart Hub 45301)",
+    "firmware": "wedo2-hub-or-pybricks-cityhub",
+    "connection": ["ble"]
+  },
+  "ports": {
+    "A": { "kind": "motor",  "part": "wedo2-medium-motor",  "role": "drive_and_tilt" },
+    "B": { "kind": "sensor", "part": "wedo2-motion-sensor", "role": "obstacle_detection" }
+  },
+  "sensors": [
+    { "kind": "motion",      "source": "Port.B" },
+    { "kind": "tilt",        "source": "hub-builtin" },
+    { "kind": "accelerometer","source": "hub-builtin" }
+  ],
+  "programTargets": ["wedo2-micropython", "pybricks-city"],
+  "notes": "WeDo 2.0 App available until July 31 2026. For continued programming after EOL, flash Pybricks CityHub firmware at https://code.pybricks.com and use the pybricks-city target.",
+  "license": "CC-BY-4.0"
+}
