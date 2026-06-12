@@ -1776,6 +1776,7 @@ async function showBlocklyEditor() {
   } catch (e) {
     setCodeStatus("Could not load Blockly (offline?)", true);
   }
+  updateHubPill();
 }
 
 function showTextEditor() {
@@ -2608,6 +2609,7 @@ function selectProfile(id) {
     noteEl.textContent = p && p.crossGenNotes ? `↔ ${p.crossGenNotes}` : "";
     noteEl.style.display = p && p.crossGenNotes ? "block" : "none";
   }
+  updateHubPill();
 }
 
 function updateTargetSelector(family) {
@@ -2901,7 +2903,11 @@ function updateHubPill() {
   const usbConnected = hubSerial.connected;
 
   if (bleConnected) {
-    const modeLabel = hubBle.mode === "pybricks" ? "Pybricks BLE" : "Stock BLE (LWP3)";
+    const modeLabel = hubBle.mode === "pybricks"
+      ? "Pybricks BLE"
+      : hubBle.mode === "wedo2"
+        ? "WeDo 2.0 BLE"
+        : "Stock BLE (LWP3)";
     const devName   = hubBle.device ? hubBle.device.name || "BLE Hub" : "BLE Hub";
     pill.textContent = `\u25CF ${devName} \u2014 ${modeLabel}`;
     pill.className   = "pill pill-on";
@@ -2928,12 +2934,12 @@ function updateHubPill() {
   if (bleConnectBtn)    bleConnectBtn.disabled    = bleConnected;
   if (bleDisconnectBtn) bleDisconnectBtn.disabled = !bleConnected;
   const isWeDo2Profile = !!(selectedProfile() && selectedProfile().family === "wedo2");
-  const wedo2LwpBlockly = bleConnected && (hubBle.mode === "lwp3" || hubBle.mode === "wedo2") && isWeDo2Profile && isBlocklyTarget();
-  if (bleRunBtn)        bleRunBtn.disabled        = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
+  const wedo2DirectBle = bleConnected && (hubBle.mode === "lwp3" || hubBle.mode === "wedo2") && isWeDo2Profile;
+  if (bleRunBtn)        bleRunBtn.disabled        = !(bleConnected && (hubBle.mode === "pybricks" || wedo2DirectBle));
   const runBleInlineBtn = el("runBleInlineBtn");
-  if (runBleInlineBtn)  runBleInlineBtn.disabled  = !(bleConnected && (hubBle.mode === "pybricks" || wedo2LwpBlockly));
+  if (runBleInlineBtn)  runBleInlineBtn.disabled  = !(bleConnected && (hubBle.mode === "pybricks" || wedo2DirectBle));
   if (bleSendReplBtn)   bleSendReplBtn.disabled   = !(bleConnected && hubBle.mode === "pybricks");
-  if (bleMotorTestBtn)  bleMotorTestBtn.disabled  = !(bleConnected && hubBle.mode === "lwp3");
+  if (bleMotorTestBtn)  bleMotorTestBtn.disabled  = !wedo2DirectBle && !(bleConnected && hubBle.mode === "lwp3");
 
   /* Show/hide mode-specific rows */
   const bleInfo = el("bleInfo");
@@ -2944,9 +2950,11 @@ function updateHubPill() {
       } else if (hubBle.mode === "wedo2" && isWeDo2Profile && isBlocklyTarget()) {
         bleInfo.textContent = "\u2705 WeDo 2.0 native BLE connected. Blockly blocks execute directly as motor/LED commands. Click \u201CRun via BLE\u201D.";
       } else if (hubBle.mode === "wedo2") {
-        bleInfo.textContent = "\u2705 WeDo 2.0 native BLE connected. Select a WeDo 2.0 profile and switch to Blockly target to run blocks.";
+        bleInfo.textContent = "\u2705 WeDo 2.0 native BLE connected. Click \u201CRun via BLE\u201D to run the selected safe intent directly. Python upload requires Pybricks firmware.";
       } else if (isWeDo2Profile && isBlocklyTarget()) {
         bleInfo.textContent = "\u2705 WeDo 2.0 stock firmware (LWP3) \u2014 Blockly blocks will execute directly over BLE. Click \u201CRun via BLE\u201D.";
+      } else if (isWeDo2Profile) {
+        bleInfo.textContent = "\u2705 WeDo 2.0 stock BLE connected. Click \u201CRun via BLE\u201D to run the selected safe intent directly. Python upload requires Pybricks firmware.";
       } else {
         bleInfo.textContent = "\u26A0\uFE0F Stock LEGO firmware (LWP3). Select a WeDo 2.0 profile + Blockly target to run blocks directly, or flash Pybricks at code.pybricks.com for Python code execution.";
       }
@@ -2986,13 +2994,14 @@ async function doBleDisconnect() {
 async function doRunViaBle() {
   if (!hubBle.connected) { appendTerminal("[BLE] Not connected.\n"); return; }
   const profile = selectedProfile();
-  // WeDo 2.0 native or LWP3 + Blockly — execute blocks directly as motor/LED commands
-  if ((hubBle.mode === "wedo2" || hubBle.mode === "lwp3") && profile && profile.family === "wedo2" && isBlocklyTarget()) {
-    await executeWeDo2BlocklyViaBle(profile);
+  // WeDo 2.0 stock/native BLE cannot upload Python. Run safe direct commands instead.
+  if ((hubBle.mode === "wedo2" || hubBle.mode === "lwp3") && profile && profile.family === "wedo2") {
+    if (isBlocklyTarget()) await executeWeDo2BlocklyViaBle(profile);
+    else await executeWeDo2IntentViaBle(profile, el("intentSel")?.value || "safe_probe");
     return;
   }
   if (hubBle.mode !== "pybricks") {
-    appendTerminal("[BLE] Error: Pybricks firmware required for code upload. For WeDo 2.0 stock firmware, use Blockly and click Run.\n"); return;
+    appendTerminal("[BLE] Error: Pybricks firmware required for Python code upload.\n"); return;
   }
   const src = isBlocklyTarget() ? getBlocklyPython(profile) : el("editorArea") && CodeMirror ? el("editorArea").nextSibling?.CodeMirror?.getValue() || "" : "";
   const code = src || (editor ? editor.getValue() : "");
@@ -3003,6 +3012,58 @@ async function doRunViaBle() {
     appendTerminal("[BLE] Program sent.\n");
   } catch (err) {
     appendTerminal(`[BLE] Run failed: ${err.message}\n`);
+  }
+}
+
+async function executeWeDo2IntentViaBle(profile, intent) {
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const motorPorts = Object.entries(profile.ports || {})
+    .filter(([, p]) => p.kind === "motor")
+    .map(([port]) => port);
+  const firstMotor = motorPorts[0] || "A";
+  const portNum = p => p === "B" ? 0x01 : 0x00;
+
+  async function stopAll() {
+    for (const port of motorPorts.length ? motorPorts : ["A", "B"]) {
+      await hubBle.sendLwp3Motor(portNum(port), 0);
+    }
+  }
+
+  try {
+    appendTerminal(`[BLE] Running WeDo 2.0 ${intent} with direct BLE commands.\n`);
+    await hubBle.sendLwp3Led(6);
+
+    if (intent === "beep_hello") {
+      appendTerminal("[BLE] WeDo hub has no speaker; flashing hub light instead.\n");
+      for (const color of [6, 3, 9, 0]) {
+        await hubBle.sendLwp3Led(color);
+        await delay(250);
+      }
+    } else if (intent === "drive_forward") {
+      for (const port of motorPorts.length ? motorPorts : [firstMotor]) {
+        await hubBle.sendLwp3Motor(portNum(port), 40);
+      }
+      await delay(1000);
+      await stopAll();
+    } else if (intent === "wave") {
+      await hubBle.sendLwp3Motor(portNum(firstMotor), 45);
+      await delay(450);
+      await hubBle.sendLwp3Motor(portNum(firstMotor), -45);
+      await delay(450);
+      await hubBle.sendLwp3Motor(portNum(firstMotor), 0);
+    } else {
+      await hubBle.sendLwp3Motor(portNum(firstMotor), 35);
+      await delay(500);
+      await hubBle.sendLwp3Motor(portNum(firstMotor), -35);
+      await delay(500);
+      await hubBle.sendLwp3Motor(portNum(firstMotor), 0);
+    }
+
+    await hubBle.sendLwp3Led(0);
+    appendTerminal("[BLE] WeDo 2.0 direct run complete.\n");
+  } catch (err) {
+    try { await stopAll(); } catch (_) {}
+    appendTerminal(`[BLE] WeDo 2.0 direct run failed: ${err.message}\n`);
   }
 }
 
@@ -3108,8 +3169,8 @@ async function doBleSendRepl() {
 }
 
 async function doBleMotorTest() {
-  if (!hubBle.connected || hubBle.mode !== "lwp3") {
-    appendTerminal("[BLE] Stock firmware (LWP3) required for motor test.\n"); return;
+  if (!hubBle.connected || (hubBle.mode !== "lwp3" && hubBle.mode !== "wedo2")) {
+    appendTerminal("[BLE] Stock firmware (LWP3 or WeDo 2.0 native) required for motor test.\n"); return;
   }
   appendTerminal("[BLE] Motor test: Port A forward 1s...\n");
   try {
@@ -3458,6 +3519,7 @@ document.addEventListener("DOMContentLoaded", () => {
       el("downloadLmsBtn").textContent = `\u2193 ${meta.extLabel}`;
     }
     updateMissionStrip();
+    updateHubPill();
   });
 
   // When intent changes while in Blockly mode, auto-reload blocks

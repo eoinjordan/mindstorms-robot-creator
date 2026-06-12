@@ -1,6 +1,6 @@
 {
   "name": "mindstorms-robot-creator",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Build, code, and control LEGO MINDSTORMS robots with AI. Browser app, desktop installer, Android app, and MCP server.",
   "author": "Eoin Jordan",
   "main": "server.js",
