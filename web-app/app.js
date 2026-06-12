@@ -2997,7 +2997,10 @@ async function doRunViaBle() {
   // WeDo 2.0 stock/native BLE cannot upload Python. Run safe direct commands instead.
   if ((hubBle.mode === "wedo2" || hubBle.mode === "lwp3") && profile && profile.family === "wedo2") {
     if (isBlocklyTarget()) await executeWeDo2BlocklyViaBle(profile);
-    else await executeWeDo2IntentViaBle(profile, el("intentSel")?.value || "safe_probe");
+    else {
+      const source = editor ? editor.getValue() : "";
+      await executeWeDo2CodeViaBle(profile, source, el("intentSel")?.value || "safe_probe");
+    }
     return;
   }
   if (hubBle.mode !== "pybricks") {
@@ -3012,6 +3015,168 @@ async function doRunViaBle() {
     appendTerminal("[BLE] Program sent.\n");
   } catch (err) {
     appendTerminal(`[BLE] Run failed: ${err.message}\n`);
+  }
+}
+
+async function executeWeDo2CodeViaBle(profile, source, fallbackIntent) {
+  if (!source.trim()) {
+    await executeWeDo2IntentViaBle(profile, fallbackIntent);
+    return;
+  }
+
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const portNum = p => String(p || "A").toUpperCase() === "B" ? 0x01 : 0x00;
+  const motorVars = new Map();
+  const constants = new Map();
+
+  for (const [port, p] of Object.entries(profile.ports || {})) {
+    if (p.kind === "motor") motorVars.set(toVarName(p.role), port.toUpperCase());
+  }
+
+  for (const raw of source.split(/\r?\n/)) {
+    const line = raw.trim();
+    let m = line.match(/^([A-Za-z_]\w*)\s*=\s*hub\.port\.([AB])\.motor\b/i);
+    if (m) motorVars.set(m[1], m[2].toUpperCase());
+    m = line.match(/^([A-Z_][A-Z0-9_]*)\s*=\s*(-?\d+(?:\.\d+)?)/);
+    if (m) constants.set(m[1], Number(m[2]));
+  }
+
+  function numberValue(expr, fallback = 0) {
+    const text = String(expr || "").trim();
+    if (constants.has(text)) return constants.get(text);
+    const n = Number(text.replace(/['"]/g, ""));
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function clampSpeed(value) {
+    return Math.max(-50, Math.min(50, Math.round(value)));
+  }
+
+  function clampSeconds(value) {
+    return Math.max(0, Math.min(2, Number(value) || 0));
+  }
+
+  function parseArgs(argText) {
+    const args = {};
+    const positional = [];
+    for (const part of String(argText || "").split(",")) {
+      const piece = part.trim();
+      if (!piece) continue;
+      const eq = piece.indexOf("=");
+      if (eq > 0) args[piece.slice(0, eq).trim()] = piece.slice(eq + 1).trim();
+      else positional.push(piece);
+    }
+    return { args, positional };
+  }
+
+  function indentation(line) {
+    const m = line.match(/^\s*/);
+    return m ? m[0].replace(/\t/g, "    ").length : 0;
+  }
+
+  async function stopAll() {
+    const ports = new Set(motorVars.values());
+    if (!ports.size) { ports.add("A"); ports.add("B"); }
+    for (const port of ports) await hubBle.sendLwp3Motor(portNum(port), 0);
+  }
+
+  async function runLine(line) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return true;
+    if (/^(import|from)\b/.test(trimmed)) return true;
+    if (/^print\s*\(/.test(trimmed)) return true;
+    if (/^[A-Za-z_]\w*\s*=\s*hub\.port\.[AB]\.motor\b/i.test(trimmed)) return true;
+    if (/^[A-Za-z_]\w*\s*=\s*hub\.port\.[AB]\.device\b/i.test(trimmed)) return true;
+    if (/^[A-Z_][A-Z0-9_]*\s*=/.test(trimmed)) return true;
+
+    let m = trimmed.match(/^hub\.led\(([^)]+)\)/);
+    if (m) {
+      await hubBle.sendLwp3Led(Math.max(0, Math.min(10, Math.round(numberValue(m[1], 0)))));
+      return true;
+    }
+
+    if (/^hub\.sound\.beep\(\)/.test(trimmed)) {
+      await hubBle.sendLwp3Led(6);
+      await delay(150);
+      await hubBle.sendLwp3Led(0);
+      return true;
+    }
+
+    m = trimmed.match(/^time\.sleep\(([^)]+)\)/);
+    if (m) {
+      await delay(Math.round(clampSeconds(numberValue(m[1], 0)) * 1000));
+      return true;
+    }
+
+    m = trimmed.match(/^([A-Za-z_]\w*)\.run_for_seconds\(([^)]*)\)/);
+    if (m) {
+      const port = motorVars.get(m[1]);
+      if (!port) throw new Error(`Unknown WeDo motor variable: ${m[1]}`);
+      const parsed = parseArgs(m[2]);
+      const speedExpr = parsed.args.speed ?? parsed.positional[0] ?? "35";
+      const secondsExpr = parsed.args.seconds ?? parsed.positional[1] ?? "1";
+      const speed = clampSpeed(numberValue(speedExpr, 35));
+      const seconds = clampSeconds(numberValue(secondsExpr, 1));
+      await hubBle.sendLwp3Motor(portNum(port), speed);
+      await delay(Math.round(seconds * 1000));
+      await hubBle.sendLwp3Motor(portNum(port), 0);
+      return true;
+    }
+
+    m = trimmed.match(/^([A-Za-z_]\w*)\.start\(([^)]*)\)/);
+    if (m) {
+      const port = motorVars.get(m[1]);
+      if (!port) throw new Error(`Unknown WeDo motor variable: ${m[1]}`);
+      const parsed = parseArgs(m[2]);
+      const speed = clampSpeed(numberValue(parsed.args.speed ?? parsed.positional[0] ?? "35", 35));
+      await hubBle.sendLwp3Motor(portNum(port), speed);
+      return true;
+    }
+
+    m = trimmed.match(/^([A-Za-z_]\w*)\.stop\(\)/);
+    if (m) {
+      const port = motorVars.get(m[1]);
+      if (!port) throw new Error(`Unknown WeDo motor variable: ${m[1]}`);
+      await hubBle.sendLwp3Motor(portNum(port), 0);
+      return true;
+    }
+
+    return false;
+  }
+
+  async function runBlock(lines, start = 0, baseIndent = 0) {
+    for (let i = start; i < lines.length; i++) {
+      const raw = lines[i];
+      const line = raw.trim();
+      if (!line) continue;
+      const indent = indentation(raw);
+      if (indent < baseIndent) return i - 1;
+      const loop = line.match(/^for\s+.+\s+in\s+range\((\d+)\):/);
+      if (loop) {
+        const body = [];
+        for (i = i + 1; i < lines.length; i++) {
+          if (lines[i].trim() && indentation(lines[i]) <= indent) { i--; break; }
+          body.push(lines[i]);
+        }
+        const count = Math.max(0, Math.min(5, parseInt(loop[1], 10)));
+        for (let n = 0; n < count; n++) await runBlock(body, 0, indent + 1);
+        continue;
+      }
+      const ok = await runLine(raw);
+      if (!ok) throw new Error(`Unsupported WeDo direct command: ${line}`);
+    }
+    return lines.length - 1;
+  }
+
+  try {
+    appendTerminal("[BLE] Running edited WeDo code as direct BLE commands.\n");
+    await runBlock(source.split(/\r?\n/));
+    await stopAll();
+    appendTerminal("[BLE] Edited WeDo code complete.\n");
+  } catch (err) {
+    try { await stopAll(); } catch (_) {}
+    appendTerminal(`[BLE] WeDo direct run stopped: ${err.message}\n`);
+    appendTerminal("[BLE] Supported on stock WeDo BLE: hub.led(...), time.sleep(...), motor.start(...), motor.stop(), motor.run_for_seconds(...), and simple for range loops. Full Python upload requires Pybricks.\n");
   }
 }
 
